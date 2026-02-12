@@ -77,104 +77,21 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             Tab("Discover", systemImage: "safari") {
-                DiscoverPlaceholderView()
+                DiscoverView()
             }
             Tab("Saved", systemImage: "heart") {
-                SavedPlaceholderView()
+                SavedView()
             }
             Tab("Map", systemImage: "map") {
-                MapPlaceholderView()
+                CityMapView()
             }
             Tab("Profile", systemImage: "person") {
-                ProfilePlaceholderView()
+                ProfileView()
             }
         }
         .tint(TeleportTheme.Colors.accent)
         .task {
             await coordinator.cityService.fetchAllCities()
-        }
-    }
-}
-
-// MARK: - Placeholder Tabs
-
-struct DiscoverPlaceholderView: View {
-    var body: some View {
-        ZStack {
-            TeleportTheme.Colors.background.ignoresSafeArea()
-            VStack(spacing: TeleportTheme.Spacing.md) {
-                Image(systemName: "safari")
-                    .font(.system(size: 48))
-                    .foregroundStyle(TeleportTheme.Colors.accent)
-                Text("Discover")
-                    .font(TeleportTheme.Typography.title())
-                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
-                Text("Your city discovery feed will live here")
-                    .font(TeleportTheme.Typography.body())
-                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
-            }
-        }
-    }
-}
-
-struct SavedPlaceholderView: View {
-    var body: some View {
-        ZStack {
-            TeleportTheme.Colors.background.ignoresSafeArea()
-            VStack(spacing: TeleportTheme.Spacing.md) {
-                Image(systemName: "heart")
-                    .font(.system(size: 48))
-                    .foregroundStyle(TeleportTheme.Colors.accent)
-                Text("Saved Cities")
-                    .font(TeleportTheme.Typography.title())
-                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
-            }
-        }
-    }
-}
-
-struct MapPlaceholderView: View {
-    var body: some View {
-        ZStack {
-            TeleportTheme.Colors.background.ignoresSafeArea()
-            VStack(spacing: TeleportTheme.Spacing.md) {
-                Image(systemName: "map")
-                    .font(.system(size: 48))
-                    .foregroundStyle(TeleportTheme.Colors.accent)
-                Text("Map")
-                    .font(TeleportTheme.Typography.title())
-                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
-            }
-        }
-    }
-}
-
-struct ProfilePlaceholderView: View {
-    @Environment(AppCoordinator.self) private var coordinator
-
-    var body: some View {
-        ZStack {
-            TeleportTheme.Colors.background.ignoresSafeArea()
-            VStack(spacing: TeleportTheme.Spacing.md) {
-                Image(systemName: "person")
-                    .font(.system(size: 48))
-                    .foregroundStyle(TeleportTheme.Colors.accent)
-                Text("Profile")
-                    .font(TeleportTheme.Typography.title())
-                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
-
-                if let name = coordinator.authService.currentProfile?.name {
-                    Text(name)
-                        .font(TeleportTheme.Typography.body())
-                        .foregroundStyle(TeleportTheme.Colors.textSecondary)
-                }
-
-                TeleportButton(title: "Sign Out", style: .secondary) {
-                    Task { await coordinator.authService.signOut() }
-                    coordinator.currentScreen = .splash
-                }
-                .padding(.horizontal, TeleportTheme.Spacing.xl)
-            }
         }
     }
 }

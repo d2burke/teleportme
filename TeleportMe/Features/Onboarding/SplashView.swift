@@ -4,6 +4,7 @@ struct SplashView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @State private var cardsAppeared = false
     @State private var textAppeared = false
+    @State private var showSignIn = false
     #if DEBUG
     @State private var showDevMode = false
     #endif
@@ -33,7 +34,7 @@ struct SplashView: View {
                     Spacer()
 
                     Button("Sign in") {
-                        // TODO: Navigate to sign in
+                        showSignIn = true
                     }
                     .font(TeleportTheme.Typography.cardTitle(15))
                     .foregroundStyle(TeleportTheme.Colors.textPrimary)
@@ -116,6 +117,10 @@ struct SplashView: View {
             withAnimation(.easeOut(duration: 0.5).delay(0.5)) {
                 textAppeared = true
             }
+        }
+        .sheet(isPresented: $showSignIn) {
+            SignInView()
+                .environment(coordinator)
         }
         #if DEBUG
         .sheet(isPresented: $showDevMode) {

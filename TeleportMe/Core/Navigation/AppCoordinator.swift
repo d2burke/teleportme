@@ -1,4 +1,5 @@
 import SwiftUI
+import Supabase
 
 // MARK: - App State
 
@@ -42,6 +43,7 @@ final class AppCoordinator {
     let authService = AuthService()
     let cityService = CityService()
     let reportService = ReportService()
+    let savedCitiesService = SavedCitiesService()
 
     // Onboarding state (collected across screens)
     var onboardingName: String = ""
@@ -59,6 +61,11 @@ final class AppCoordinator {
 
     func advanceOnboarding(from step: OnboardingStep) {
         guard let next = step.next else { return }
+
+        // Persist preferences to Supabase when leaving the preferences step
+        if step == .preferences {
+            Task { await savePreferences() }
+        }
 
         if step == .generating {
             // Replace generating with recommendations so user can't
@@ -112,6 +119,31 @@ final class AppCoordinator {
         )
     }
 
+    // MARK: - Save Preferences
+
+    func savePreferences() async {
+        // Skip in preview mode or if user is not authenticated
+        guard !previewMode, let userId = authService.currentUser?.id else { return }
+
+        let data = UserPreferencesRow(
+            userId: userId.uuidString,
+            startType: preferences.startType.rawValue,
+            costPreference: preferences.costPreference,
+            climatePreference: preferences.climatePreference,
+            culturePreference: preferences.culturePreference,
+            jobMarketPreference: preferences.jobMarketPreference
+        )
+
+        do {
+            try await SupabaseManager.shared.client
+                .from("user_preferences")
+                .upsert(data)
+                .execute()
+        } catch {
+            print("Failed to save preferences: \(error)")
+        }
+    }
+
     // MARK: - Session Check
 
     func checkExistingSession() async {
@@ -122,5 +154,25 @@ final class AppCoordinator {
             await cityService.fetchAllCities()
             goToMain()
         }
+    }
+}
+
+// MARK: - User Preferences Row (for Supabase upsert)
+
+private struct UserPreferencesRow: Encodable {
+    let userId: String
+    let startType: String
+    let costPreference: Double
+    let climatePreference: Double
+    let culturePreference: Double
+    let jobMarketPreference: Double
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case startType = "start_type"
+        case costPreference = "cost_preference"
+        case climatePreference = "climate_preference"
+        case culturePreference = "culture_preference"
+        case jobMarketPreference = "job_market_preference"
     }
 }

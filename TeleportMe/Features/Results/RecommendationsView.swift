@@ -4,6 +4,7 @@ struct RecommendationsView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @State private var appeared = false
     @State private var selectedMatchIndex = 0
+    @State private var showShareSheet = false
 
     private var matches: [CityMatch] {
         coordinator.reportService.currentReport?.matches ?? []
@@ -11,6 +12,14 @@ struct RecommendationsView: View {
 
     private var currentCity: CurrentCityInfo? {
         coordinator.reportService.currentReport?.currentCity
+    }
+
+    private var shareText: String {
+        var text = "Check out my TeleportMe city matches!\n\n"
+        for match in matches {
+            text += "#\(match.rank) \(match.cityName) - \(match.matchPercent)% match\n"
+        }
+        return text
     }
 
     var body: some View {
@@ -133,7 +142,7 @@ struct RecommendationsView: View {
             // Bottom CTA bar
             HStack(spacing: TeleportTheme.Spacing.md) {
                 TeleportButton(title: "Share", icon: "square.and.arrow.up", style: .secondary) {
-                    // TODO: Share functionality
+                    showShareSheet = true
                 }
 
                 TeleportButton(title: "Let's Go") {
@@ -150,7 +159,22 @@ struct RecommendationsView: View {
                 )
             )
         }
+        .sheet(isPresented: $showShareSheet) {
+            ActivityView(text: shareText)
+        }
     }
+}
+
+// MARK: - Activity View (UIActivityViewController Wrapper)
+
+struct ActivityView: UIViewControllerRepresentable {
+    let text: String
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: [text], applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Comparison Card
