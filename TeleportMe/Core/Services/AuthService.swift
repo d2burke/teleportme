@@ -1,0 +1,123 @@
+import Foundation
+import Supabase
+
+// MARK: - Auth Service
+
+@Observable
+final class AuthService {
+    private let supabase = SupabaseManager.shared.client
+
+    var currentUser: User?
+    var currentProfile: UserProfile?
+    var isAuthenticated: Bool { currentUser != nil }
+    var isLoading = false
+    var error: String?
+
+    init() {
+        Task { await checkSession() }
+    }
+
+    // MARK: - Session
+
+    func checkSession() async {
+        do {
+            let session = try await supabase.auth.session
+            currentUser = session.user
+            await loadProfile()
+        } catch {
+            currentUser = nil
+            currentProfile = nil
+        }
+    }
+
+    // MARK: - Sign Up
+
+    func signUp(email: String, password: String, name: String) async throws {
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let response = try await supabase.auth.signUp(
+                email: email,
+                password: password
+            )
+            currentUser = response.user
+
+            // Update profile with name
+            let userId = response.user.id
+            try await supabase
+                .from("profiles")
+                .update(["name": name])
+                .eq("id", value: userId.uuidString)
+                .execute()
+
+            await loadProfile()
+        } catch let authError {
+            self.error = authError.localizedDescription
+            throw authError
+        }
+    }
+
+    // MARK: - Sign In
+
+    func signIn(email: String, password: String) async throws {
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let session = try await supabase.auth.signIn(
+                email: email,
+                password: password
+            )
+            currentUser = session.user
+            await loadProfile()
+        } catch let authError {
+            self.error = authError.localizedDescription
+            throw authError
+        }
+    }
+
+    // MARK: - Sign Out
+
+    func signOut() async {
+        try? await supabase.auth.signOut()
+        currentUser = nil
+        currentProfile = nil
+    }
+
+    // MARK: - Profile
+
+    func loadProfile() async {
+        guard let userId = currentUser?.id else { return }
+        do {
+            let profile: UserProfile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+            currentProfile = profile
+        } catch {
+            print("Failed to load profile: \(error)")
+        }
+    }
+
+    func updateProfile(name: String? = nil, currentCityId: String? = nil) async throws {
+        guard let userId = currentUser?.id else { return }
+
+        var updates: [String: String] = [:]
+        if let name { updates["name"] = name }
+        if let currentCityId { updates["current_city_id"] = currentCityId }
+
+        try await supabase
+            .from("profiles")
+            .update(updates)
+            .eq("id", value: userId.uuidString)
+            .execute()
+
+        await loadProfile()
+    }
+}
