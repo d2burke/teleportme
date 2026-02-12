@@ -24,7 +24,12 @@ struct SavedView: View {
                 TeleportTheme.Colors.background
                     .ignoresSafeArea()
 
-                if savedCitiesService.savedCities.isEmpty && !savedCitiesService.isLoading {
+                if let error = savedCitiesService.loadError {
+                    errorStateView(message: error)
+                } else if savedCitiesService.isLoading && savedCitiesService.savedCities.isEmpty {
+                    ProgressView()
+                        .tint(TeleportTheme.Colors.accent)
+                } else if savedCitiesService.savedCities.isEmpty {
                     emptyStateView
                 } else {
                     savedCitiesList
@@ -37,6 +42,39 @@ struct SavedView: View {
         .task {
             await savedCitiesService.loadSavedCities()
         }
+    }
+
+    // MARK: - Error State
+
+    private func errorStateView(message: String) -> some View {
+        VStack(spacing: TeleportTheme.Spacing.md) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 48))
+                .foregroundStyle(.red.opacity(0.6))
+
+            Text("Couldn't load saved cities")
+                .font(TeleportTheme.Typography.title(20))
+                .foregroundStyle(TeleportTheme.Colors.textPrimary)
+
+            Text(message)
+                .font(TeleportTheme.Typography.caption())
+                .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+
+            Button {
+                Task { await savedCitiesService.loadSavedCities() }
+            } label: {
+                Text("Retry")
+                    .font(TeleportTheme.Typography.cardTitle(14))
+                    .foregroundStyle(TeleportTheme.Colors.background)
+                    .padding(.horizontal, TeleportTheme.Spacing.lg)
+                    .padding(.vertical, TeleportTheme.Spacing.sm)
+                    .background(TeleportTheme.Colors.accent)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, TeleportTheme.Spacing.xl)
     }
 
     // MARK: - Empty State

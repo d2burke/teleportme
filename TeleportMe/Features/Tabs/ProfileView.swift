@@ -6,6 +6,8 @@ struct ProfileView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @State private var pastReports: [CityReport] = []
     @State private var isLoadingReports = false
+    @State private var reportsError: String?
+    @State private var selectedReport: CityReport?
 
     private var profile: UserProfile? {
         coordinator.authService.currentProfile
@@ -42,6 +44,9 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .navigationDestination(item: $selectedReport) { report in
+                ReportDetailView(report: report)
+            }
         }
         .task {
             await loadReports()
@@ -138,6 +143,38 @@ struct ProfileView: View {
                     Spacer()
                 }
                 .padding(.vertical, TeleportTheme.Spacing.lg)
+            } else if let error = reportsError {
+                CardView {
+                    VStack(spacing: TeleportTheme.Spacing.sm) {
+                        Image(systemName: "wifi.exclamationmark")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.red.opacity(0.6))
+
+                        Text("Couldn't load reports")
+                            .font(TeleportTheme.Typography.cardTitle())
+                            .foregroundStyle(TeleportTheme.Colors.textPrimary)
+
+                        Text(error)
+                            .font(TeleportTheme.Typography.caption())
+                            .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                            .multilineTextAlignment(.center)
+
+                        Button {
+                            Task { await loadReports() }
+                        } label: {
+                            Text("Retry")
+                                .font(TeleportTheme.Typography.cardTitle(14))
+                                .foregroundStyle(TeleportTheme.Colors.background)
+                                .padding(.horizontal, TeleportTheme.Spacing.lg)
+                                .padding(.vertical, TeleportTheme.Spacing.sm)
+                                .background(TeleportTheme.Colors.accent)
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, TeleportTheme.Spacing.sm)
+                }
             } else if pastReports.isEmpty {
                 CardView {
                     VStack(spacing: TeleportTheme.Spacing.sm) {
@@ -160,7 +197,12 @@ struct ProfileView: View {
             } else {
                 VStack(spacing: TeleportTheme.Spacing.sm) {
                     ForEach(pastReports) { report in
-                        reportRow(report)
+                        Button {
+                            selectedReport = report
+                        } label: {
+                            reportRow(report)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -213,14 +255,14 @@ struct ProfileView: View {
             SectionHeader(title: "Settings")
 
             VStack(spacing: TeleportTheme.Spacing.sm) {
-                settingsRow(icon: "pencil.circle", title: "Edit Profile")
-                settingsRow(icon: "bell", title: "Notifications")
-                settingsRow(icon: "info.circle", title: "About TeleportMe")
+                settingsRow(icon: "pencil.circle", title: "Edit Profile", comingSoon: true)
+                settingsRow(icon: "bell", title: "Notifications", comingSoon: true)
+                settingsRow(icon: "info.circle", title: "About TeleportMe", comingSoon: false, detail: "v1.0")
             }
         }
     }
 
-    private func settingsRow(icon: String, title: String) -> some View {
+    private func settingsRow(icon: String, title: String, comingSoon: Bool = false, detail: String? = nil) -> some View {
         CardView {
             HStack(spacing: TeleportTheme.Spacing.md) {
                 Image(systemName: icon)
@@ -236,9 +278,19 @@ struct ProfileView: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                if comingSoon {
+                    Text("Coming Soon")
+                        .font(TeleportTheme.Typography.caption(11))
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                        .padding(.horizontal, TeleportTheme.Spacing.sm)
+                        .padding(.vertical, 3)
+                        .background(TeleportTheme.Colors.surfaceElevated)
+                        .clipShape(Capsule())
+                } else if let detail {
+                    Text(detail)
+                        .font(TeleportTheme.Typography.caption())
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                }
             }
         }
     }
@@ -248,8 +300,7 @@ struct ProfileView: View {
     private var signOutSection: some View {
         TeleportButton(title: "Sign Out", style: .secondary) {
             Task {
-                await coordinator.authService.signOut()
-                coordinator.currentScreen = .splash
+                await coordinator.signOut()
             }
         }
         .padding(.top, TeleportTheme.Spacing.sm)
@@ -271,7 +322,12 @@ struct ProfileView: View {
     private func loadReports() async {
         guard let userId = coordinator.authService.currentProfile?.id else { return }
         isLoadingReports = true
+        reportsError = nil
         pastReports = await coordinator.reportService.loadReports(userId: userId)
+        // If we got no reports and the service has an error, surface it
+        if pastReports.isEmpty, let serviceError = coordinator.reportService.error {
+            reportsError = serviceError
+        }
         isLoadingReports = false
     }
 

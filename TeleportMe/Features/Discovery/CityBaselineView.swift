@@ -114,10 +114,12 @@ struct CityBaselineView: View {
                     .padding(.top, 200)
                 }
 
-                // CTA
+                // CTA — only enabled when city data has loaded
                 TeleportButton(title: "Next: Target Factors", icon: "arrow.right") {
                     coordinator.advanceOnboarding(from: .cityBaseline)
                 }
+                .disabled(coordinator.selectedCity == nil)
+                .opacity(coordinator.selectedCity != nil ? 1 : 0.4)
                 .padding(.horizontal, TeleportTheme.Spacing.lg)
                 .padding(.bottom, TeleportTheme.Spacing.xxl)
             }

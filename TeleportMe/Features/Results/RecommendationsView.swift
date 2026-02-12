@@ -47,25 +47,42 @@ struct RecommendationsView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: TeleportTheme.Spacing.md) {
                             ForEach(Array(matches.enumerated()), id: \.1.id) { index, match in
-                                CityHeroImage(
-                                    imageURL: match.cityImageUrl,
-                                    cityName: match.cityName,
-                                    subtitle: match.cityCountry,
-                                    height: 320,
-                                    matchPercent: match.matchPercent,
-                                    rank: match.rank
-                                )
-                                .frame(width: UIScreen.main.bounds.width - 80)
-                                .onTapGesture {
-                                    selectedMatchIndex = index
+                                ZStack(alignment: .topTrailing) {
+                                    CityHeroImage(
+                                        imageURL: match.cityImageUrl,
+                                        cityName: match.cityName,
+                                        subtitle: match.cityCountry,
+                                        height: 320,
+                                        matchPercent: match.matchPercent,
+                                        rank: match.rank
+                                    )
+                                    .frame(width: UIScreen.main.bounds.width - 80)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: TeleportTheme.Radius.large)
+                                            .strokeBorder(
+                                                selectedMatchIndex == index
+                                                    ? TeleportTheme.Colors.accent
+                                                    : .clear,
+                                                lineWidth: 2
+                                            )
+                                    )
+                                    .onTapGesture {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedMatchIndex = index
+                                        }
+                                    }
+
+                                    saveButton(cityId: match.cityId)
+                                        .padding(.top, 72)
+                                        .padding(.trailing, TeleportTheme.Spacing.sm)
                                 }
                             }
                         }
                         .padding(.horizontal, TeleportTheme.Spacing.lg)
                     }
 
-                    // Comparison section
-                    if let topMatch = matches.first {
+                    // Comparison section — show for selected match
+                    if let selectedMatch = matches[safe: selectedMatchIndex] ?? matches.first {
                         VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
                             HStack {
                                 Text("The Comparison")
@@ -82,7 +99,7 @@ struct RecommendationsView: View {
                             }
 
                             // Comparison cards
-                            if let comparison = topMatch.comparison {
+                            if let comparison = selectedMatch.comparison {
                                 ForEach(Array(comparison.keys.sorted()), id: \.self) { category in
                                     if let metric = comparison[category] {
                                         ComparisonCard(
@@ -90,7 +107,7 @@ struct RecommendationsView: View {
                                             matchScore: metric.matchScore,
                                             currentScore: metric.currentScore,
                                             delta: metric.delta,
-                                            matchCityName: topMatch.cityName,
+                                            matchCityName: selectedMatch.cityName,
                                             currentCityName: currentCity?.name ?? "Current"
                                         )
                                     }
@@ -100,7 +117,7 @@ struct RecommendationsView: View {
                         .padding(.horizontal, TeleportTheme.Spacing.lg)
 
                         // AI Insight
-                        if let insight = topMatch.aiInsight {
+                        if let insight = selectedMatch.aiInsight {
                             CardView {
                                 VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
                                     HStack(spacing: TeleportTheme.Spacing.sm) {
@@ -162,6 +179,25 @@ struct RecommendationsView: View {
         .sheet(isPresented: $showShareSheet) {
             ActivityView(text: shareText)
         }
+    }
+
+    // MARK: - Save Button
+
+    private func saveButton(cityId: String) -> some View {
+        let isSaved = coordinator.savedCitiesService.isSaved(cityId: cityId)
+        return Button {
+            Task {
+                await coordinator.savedCitiesService.toggleSave(cityId: cityId)
+            }
+        } label: {
+            Image(systemName: isSaved ? "heart.fill" : "heart")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(isSaved ? TeleportTheme.Colors.accent : TeleportTheme.Colors.textSecondary)
+                .frame(width: 32, height: 32)
+                .background(TeleportTheme.Colors.background.opacity(0.6))
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

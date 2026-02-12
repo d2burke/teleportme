@@ -30,6 +30,9 @@ private struct GenerateReportRequest: Encodable {
 @Observable
 final class ReportService {
     private let supabase = SupabaseManager.shared.client
+    private let cache = CacheManager.shared
+
+    private let pastReportsTTL: TimeInterval = 60 * 60  // 1 hour
 
     var currentReport: GenerateReportResponse?
     var isGenerating = false
@@ -39,7 +42,8 @@ final class ReportService {
 
     func generateReport(
         currentCityId: String,
-        preferences: UserPreferences
+        preferences: UserPreferences,
+        userId: String? = nil
     ) async throws -> GenerateReportResponse {
         isGenerating = true
         error = nil
@@ -56,13 +60,21 @@ final class ReportService {
                 )
             )
 
-            let response: GenerateReportResponse = try await supabase.functions
-                .invoke(
-                    "generate-report",
-                    options: .init(body: body)
-                )
+            let response: GenerateReportResponse = try await withTimeout(seconds: 30) {
+                try await self.supabase.functions
+                    .invoke(
+                        "generate-report",
+                        options: .init(body: body)
+                    )
+            }
 
             currentReport = response
+
+            // Write-through cache
+            if let userId {
+                cache.save(response, for: .currentReport(userId: userId))
+            }
+
             return response
         } catch {
             self.error = error.localizedDescription
@@ -73,8 +85,59 @@ final class ReportService {
     // MARK: - Load Past Reports
 
     func loadReports(userId: String) async -> [CityReport] {
+        // Step 1: Load from cache immediately
+        if let cached = cache.load(
+            [CityReport].self,
+            for: .pastReports(userId: userId),
+            ttl: pastReportsTTL
+        ) {
+            // If fresh, return immediately without network call
+            if !cached.isStale {
+                self.error = nil
+                return cached.data
+            }
+
+            // Stale: try network, fall back to cached on failure
+            do {
+                let reports = try await fetchReportsFromNetwork(userId: userId)
+                self.error = nil
+                return reports
+            } catch {
+                self.error = error.localizedDescription
+                print("Failed to refresh reports, using cache: \(error)")
+                return cached.data
+            }
+        }
+
+        // Step 2: No cache — must fetch from network
         do {
-            let reports: [CityReport] = try await supabase
+            let reports = try await fetchReportsFromNetwork(userId: userId)
+            self.error = nil
+            return reports
+        } catch {
+            self.error = error.localizedDescription
+            print("Failed to load reports: \(error)")
+            return []
+        }
+    }
+
+    // MARK: - Restore Current Report from Cache
+
+    /// Restores `currentReport` from disk cache (called on app relaunch).
+    func restoreCurrentReport(userId: String) {
+        if let cached = cache.load(
+            GenerateReportResponse.self,
+            for: .currentReport(userId: userId)
+        ) {
+            currentReport = cached.data
+        }
+    }
+
+    // MARK: - Private Helpers
+
+    private func fetchReportsFromNetwork(userId: String) async throws -> [CityReport] {
+        let reports: [CityReport] = try await withTimeout(seconds: 10) {
+            try await self.supabase
                 .from("city_reports")
                 .select()
                 .eq("user_id", value: userId)
@@ -82,10 +145,8 @@ final class ReportService {
                 .limit(20)
                 .execute()
                 .value
-            return reports
-        } catch {
-            print("Failed to load reports: \(error)")
-            return []
         }
+        cache.save(reports, for: .pastReports(userId: userId))
+        return reports
     }
 }

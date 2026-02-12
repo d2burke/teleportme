@@ -55,6 +55,15 @@ struct TeleportMeApp: App {
                 coord.navigationPath.append(OnboardingStep.cityBaseline)
                 coord.navigationPath.append(OnboardingStep.preferences)
                 coord.navigationPath.append(OnboardingStep.recommendations)
+            case "generating":
+                coord = PreviewHelpers.makeCoordinator()
+                coord.currentScreen = .onboarding
+                coord.navigationPath.append(OnboardingStep.signUp)
+                coord.navigationPath.append(OnboardingStep.startType)
+                coord.navigationPath.append(OnboardingStep.citySearch)
+                coord.navigationPath.append(OnboardingStep.cityBaseline)
+                coord.navigationPath.append(OnboardingStep.preferences)
+                coord.navigationPath.append(OnboardingStep.generating)
             case "main":
                 coord = PreviewHelpers.makeCoordinatorWithReport()
                 coord.currentScreen = .main

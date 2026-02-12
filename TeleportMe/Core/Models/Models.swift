@@ -51,7 +51,7 @@ struct CityScore: Codable, Identifiable {
 
 // MARK: - City with Scores (convenience)
 
-struct CityWithScores: Identifiable, Hashable {
+struct CityWithScores: Codable, Identifiable, Hashable {
     let city: City
     let scores: [String: Double]
 
@@ -163,7 +163,7 @@ enum StartType: String, Codable {
 
 // MARK: - City Report (from edge function)
 
-struct CityReport: Codable, Identifiable {
+struct CityReport: Codable, Identifiable, Hashable {
     let id: String?
     let userId: String?
     let currentCityId: String?
@@ -178,6 +178,15 @@ struct CityReport: Codable, Identifiable {
         case currentCityId = "current_city_id"
         case aiSummary = "ai_summary"
         case createdAt = "created_at"
+    }
+
+    // Hash and equality by id for NavigationStack
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: CityReport, rhs: CityReport) -> Bool {
+        lhs.id == rhs.id
     }
 }
 

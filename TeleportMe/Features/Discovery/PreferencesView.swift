@@ -3,6 +3,7 @@ import SwiftUI
 struct PreferencesView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @State private var appeared = false
+    @State private var isSaving = false
 
     var body: some View {
         @Bindable var coord = coordinator
@@ -68,6 +69,8 @@ struct PreferencesView: View {
                     .animation(.spring(response: 0.5).delay(0.3), value: appeared)
                 }
                 .padding(.horizontal, TeleportTheme.Spacing.lg)
+                .allowsHitTesting(!isSaving)
+                .opacity(isSaving ? 0.6 : 1.0)
             }
             .padding(.bottom, 100) // Space for button
         }
@@ -76,9 +79,11 @@ struct PreferencesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .overlay(alignment: .bottom) {
             // Fixed CTA at bottom
-            TeleportButton(title: "Find My Cities", icon: "arrow.right") {
+            TeleportButton(title: "Find My Cities", icon: "arrow.right", isLoading: isSaving) {
+                isSaving = true
                 coordinator.advanceOnboarding(from: .preferences)
             }
+            .disabled(isSaving)
             .padding(.horizontal, TeleportTheme.Spacing.lg)
             .padding(.bottom, TeleportTheme.Spacing.lg)
             .background(

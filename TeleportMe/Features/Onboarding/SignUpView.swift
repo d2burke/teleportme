@@ -78,6 +78,25 @@ struct SignUpView: View {
                     .padding(TeleportTheme.Spacing.md)
                     .background(TeleportTheme.Colors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
+
+                    // Inline validation hints
+                    if !password.isEmpty && !confirmPassword.isEmpty && password != confirmPassword {
+                        HStack(spacing: TeleportTheme.Spacing.xs) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 12))
+                            Text("Passwords don't match")
+                        }
+                        .font(TeleportTheme.Typography.caption(12))
+                        .foregroundStyle(.red.opacity(0.8))
+                    } else if !password.isEmpty && password.count < 6 {
+                        HStack(spacing: TeleportTheme.Spacing.xs) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 12))
+                            Text("Password must be at least 6 characters")
+                        }
+                        .font(TeleportTheme.Typography.caption(12))
+                        .foregroundStyle(.red.opacity(0.8))
+                    }
                 }
                 .padding(.horizontal, TeleportTheme.Spacing.lg)
 

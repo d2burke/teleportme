@@ -25,6 +25,13 @@ struct DiscoverView: View {
                 // MARK: Header
                 headerSection
 
+                // Error banner (shown when city fetch fails)
+                if let error = coordinator.cityService.loadError {
+                    errorBanner(message: error) {
+                        Task { await coordinator.cityService.retryFetch() }
+                    }
+                }
+
                 // MARK: Your Matches
                 matchesSection
 
@@ -40,6 +47,42 @@ struct DiscoverView: View {
         .task {
             await coordinator.cityService.fetchAllCities()
         }
+    }
+
+    // MARK: - Error Banner
+
+    private func errorBanner(message: String, onRetry: @escaping () -> Void) -> some View {
+        CardView {
+            VStack(spacing: TeleportTheme.Spacing.sm) {
+                HStack(spacing: TeleportTheme.Spacing.sm) {
+                    Image(systemName: "wifi.exclamationmark")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.red.opacity(0.8))
+
+                    Text("Unable to load cities")
+                        .font(TeleportTheme.Typography.cardTitle())
+                        .foregroundStyle(TeleportTheme.Colors.textPrimary)
+                }
+
+                Text(message)
+                    .font(TeleportTheme.Typography.caption())
+                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+
+                Button(action: onRetry) {
+                    Text("Retry")
+                        .font(TeleportTheme.Typography.cardTitle(14))
+                        .foregroundStyle(TeleportTheme.Colors.background)
+                        .padding(.horizontal, TeleportTheme.Spacing.lg)
+                        .padding(.vertical, TeleportTheme.Spacing.sm)
+                        .background(TeleportTheme.Colors.accent)
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, TeleportTheme.Spacing.lg)
     }
 
     // MARK: - Header

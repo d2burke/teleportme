@@ -14,14 +14,17 @@ final class AuthService {
     var error: String?
 
     init() {
-        Task { await checkSession() }
+        // Session check is handled by AppCoordinator.checkExistingSession()
+        // Don't fire a redundant network call here
     }
 
     // MARK: - Session
 
     func checkSession() async {
         do {
-            let session = try await supabase.auth.session
+            let session = try await withTimeout(seconds: 10) {
+                try await self.supabase.auth.session
+            }
             currentUser = session.user
             await loadProfile()
         } catch {
@@ -38,19 +41,24 @@ final class AuthService {
         defer { isLoading = false }
 
         do {
-            let response = try await supabase.auth.signUp(
-                email: email,
-                password: password
-            )
+            let response = try await withTimeout(seconds: 15) {
+                try await self.supabase.auth.signUp(
+                    email: email,
+                    password: password
+                )
+            }
             currentUser = response.user
 
             // Update profile with name
             let userId = response.user.id
-            try await supabase
-                .from("profiles")
-                .update(["name": name])
-                .eq("id", value: userId.uuidString)
-                .execute()
+            let _: Bool = try await withTimeout(seconds: 10) {
+                _ = try await self.supabase
+                    .from("profiles")
+                    .update(["name": name])
+                    .eq("id", value: userId.uuidString)
+                    .execute()
+                return true
+            }
 
             await loadProfile()
         } catch let authError {
@@ -67,10 +75,12 @@ final class AuthService {
         defer { isLoading = false }
 
         do {
-            let session = try await supabase.auth.signIn(
-                email: email,
-                password: password
-            )
+            let session = try await withTimeout(seconds: 15) {
+                try await self.supabase.auth.signIn(
+                    email: email,
+                    password: password
+                )
+            }
             currentUser = session.user
             await loadProfile()
         } catch let authError {
@@ -92,13 +102,15 @@ final class AuthService {
     func loadProfile() async {
         guard let userId = currentUser?.id else { return }
         do {
-            let profile: UserProfile = try await supabase
-                .from("profiles")
-                .select()
-                .eq("id", value: userId.uuidString)
-                .single()
-                .execute()
-                .value
+            let profile: UserProfile = try await withTimeout(seconds: 10) {
+                try await self.supabase
+                    .from("profiles")
+                    .select()
+                    .eq("id", value: userId.uuidString)
+                    .single()
+                    .execute()
+                    .value
+            }
             currentProfile = profile
         } catch {
             print("Failed to load profile: \(error)")
@@ -108,15 +120,21 @@ final class AuthService {
     func updateProfile(name: String? = nil, currentCityId: String? = nil) async throws {
         guard let userId = currentUser?.id else { return }
 
-        var updates: [String: String] = [:]
-        if let name { updates["name"] = name }
-        if let currentCityId { updates["current_city_id"] = currentCityId }
+        let updates: [String: String] = {
+            var dict: [String: String] = [:]
+            if let name { dict["name"] = name }
+            if let currentCityId { dict["current_city_id"] = currentCityId }
+            return dict
+        }()
 
-        try await supabase
-            .from("profiles")
-            .update(updates)
-            .eq("id", value: userId.uuidString)
-            .execute()
+        let _: Bool = try await withTimeout(seconds: 10) {
+            _ = try await self.supabase
+                .from("profiles")
+                .update(updates)
+                .eq("id", value: userId.uuidString)
+                .execute()
+            return true
+        }
 
         await loadProfile()
     }

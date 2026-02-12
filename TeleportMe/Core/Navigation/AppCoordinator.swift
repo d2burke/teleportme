@@ -45,6 +45,8 @@ final class AppCoordinator {
     let reportService = ReportService()
     let savedCitiesService = SavedCitiesService()
 
+    private let cache = CacheManager.shared
+
     // Onboarding state (collected across screens)
     var onboardingName: String = ""
     var selectedStartType: StartType = .cityILove
@@ -100,6 +102,12 @@ final class AppCoordinator {
         selectedCityId = cityId
         selectedCity = await cityService.getCityWithScores(cityId: cityId)
 
+        // Write-through cache
+        if let userId = authService.currentUser?.id.uuidString,
+           let city = selectedCity {
+            cache.save(city, for: .selectedCity(userId: userId))
+        }
+
         // Update profile with current city (skip in preview mode)
         if !previewMode {
             try? await authService.updateProfile(currentCityId: cityId)
@@ -113,9 +121,11 @@ final class AppCoordinator {
             throw NSError(domain: "TeleportMe", code: 1, userInfo: [NSLocalizedDescriptionKey: "No city selected"])
         }
 
+        let userId = authService.currentUser?.id.uuidString
         return try await reportService.generateReport(
             currentCityId: cityId,
-            preferences: preferences
+            preferences: preferences,
+            userId: userId
         )
     }
 
@@ -125,8 +135,13 @@ final class AppCoordinator {
         // Skip in preview mode or if user is not authenticated
         guard !previewMode, let userId = authService.currentUser?.id else { return }
 
+        let userIdString = userId.uuidString
+
+        // Write-through to cache immediately
+        cache.save(preferences, for: .preferences(userId: userIdString))
+
         let data = UserPreferencesRow(
-            userId: userId.uuidString,
+            userId: userIdString,
             startType: preferences.startType.rawValue,
             costPreference: preferences.costPreference,
             climatePreference: preferences.climatePreference,
@@ -150,9 +165,73 @@ final class AppCoordinator {
         if previewMode { return }
         await authService.checkSession()
         if authService.isAuthenticated {
-            // Load cities in background
+            let userId = authService.currentUser?.id.uuidString
+
+            // Restore cached state before transitioning to main
+            if let userId {
+                restoreCachedState(userId: userId)
+            }
+
+            // Load cities (will use disk cache if available)
             await cityService.fetchAllCities()
             goToMain()
+        }
+    }
+
+    // MARK: - Sign Out
+
+    /// Signs the user out, clears their local cache, and resets all local state.
+    func signOut() async {
+        let userId = authService.currentUser?.id.uuidString
+
+        // Sign out from Supabase
+        await authService.signOut()
+
+        // Clear per-user cache
+        if let userId {
+            cache.clearUserCache(userId: userId)
+        }
+
+        // Reset all local state
+        selectedCityId = nil
+        selectedCity = nil
+        preferences = .defaults
+        onboardingName = ""
+        selectedStartType = .cityILove
+        reportService.currentReport = nil
+        reportService.error = nil
+        savedCitiesService.savedCities = []
+        savedCitiesService.savedCityIds = []
+        savedCitiesService.cachedUserId = nil
+
+        // Navigate to splash
+        navigationPath = NavigationPath()
+        currentScreen = .splash
+    }
+
+    // MARK: - Cache Restore (private)
+
+    /// Restores preferences, current report, and selected city from disk cache.
+    /// Called during `checkExistingSession()` before transitioning to main.
+    private func restoreCachedState(userId: String) {
+        // Restore preferences
+        if let cached = cache.load(
+            UserPreferences.self,
+            for: .preferences(userId: userId)
+        ) {
+            preferences = cached.data
+        }
+
+        // Restore current report
+        reportService.restoreCurrentReport(userId: userId)
+
+        // Restore selected city
+        if let cached = cache.load(
+            CityWithScores.self,
+            for: .selectedCity(userId: userId)
+        ) {
+            selectedCity = cached.data
+            selectedCityId = cached.data.city.id
         }
     }
 }
