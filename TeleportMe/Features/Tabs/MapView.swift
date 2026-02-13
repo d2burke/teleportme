@@ -5,7 +5,7 @@ import MapKit
 
 private enum CityMapFilter: String, CaseIterable {
     case all = "All"
-    case matches = "Matches"
+    case explored = "Explored"
     case saved = "Saved"
 }
 
@@ -13,6 +13,8 @@ private enum CityMapFilter: String, CaseIterable {
 
 struct CityMapView: View {
     @Environment(AppCoordinator.self) private var coordinator
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     @State private var cameraPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
@@ -25,17 +27,24 @@ struct CityMapView: View {
 
     // MARK: - Computed Properties
 
+    /// All unique city IDs across all explorations (union of all results).
+    private var exploredCityIds: Set<String> {
+        let fromExplorations = coordinator.explorationService.explorations
+            .flatMap { $0.results.map(\.cityId) }
+        let fromCurrentReport = coordinator.reportService.currentReport?.matches.map(\.cityId) ?? []
+        return Set(fromExplorations + fromCurrentReport)
+    }
+
     private var matchedCityIds: Set<String> {
-        guard let report = coordinator.reportService.currentReport else { return [] }
-        return Set(report.matches.map(\.cityId))
+        exploredCityIds
     }
 
     private var filteredCities: [City] {
         switch activeFilter {
         case .all:
             return coordinator.cityService.allCities
-        case .matches:
-            return coordinator.cityService.allCities.filter { matchedCityIds.contains($0.id) }
+        case .explored:
+            return coordinator.cityService.allCities.filter { exploredCityIds.contains($0.id) }
         case .saved:
             return coordinator.cityService.allCities.filter { coordinator.savedCitiesService.isSaved(cityId: $0.id) }
         }
@@ -48,66 +57,82 @@ struct CityMapView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // Full-screen map
-            Map(position: $cameraPosition) {
-                ForEach(filteredCities) { city in
-                    Annotation(
-                        city.name,
-                        coordinate: CLLocationCoordinate2D(
-                            latitude: city.latitude,
-                            longitude: city.longitude
-                        )
-                    ) {
-                        CityAnnotationMarker(
-                            city: city,
-                            isMatched: matchedCityIds.contains(city.id),
-                            isSaved: coordinator.savedCitiesService.isSaved(cityId: city.id),
-                            isSelected: selectedCity?.id == city.id
-                        )
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                selectedCity = city
+        NavigationStack {
+            ZStack(alignment: .top) {
+                // Full-screen map
+                Map(position: $cameraPosition) {
+                    ForEach(filteredCities) { city in
+                        Annotation(
+                            city.name,
+                            coordinate: CLLocationCoordinate2D(
+                                latitude: city.latitude,
+                                longitude: city.longitude
+                            )
+                        ) {
+                            CityAnnotationMarker(
+                                city: city,
+                                isMatched: matchedCityIds.contains(city.id),
+                                isSaved: coordinator.savedCitiesService.isSaved(cityId: city.id),
+                                isSelected: selectedCity?.id == city.id
+                            )
+                            .onTapGesture {
+                                analytics.trackButtonTap("city_pin", screen: "map", properties: ["city_id": city.id])
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    selectedCity = city
+                                }
                             }
                         }
                     }
                 }
-            }
-            .mapStyle(.standard(elevation: .realistic))
-            .ignoresSafeArea(edges: .all)
+                .mapStyle(.standard(elevation: .realistic))
+                .ignoresSafeArea(edges: .all)
 
-            // Filter bar overlay
-            filterBar
-                .padding(.top, TeleportTheme.Spacing.sm)
+                // Filter bar overlay
+                filterBar
+                    .padding(.top, TeleportTheme.Spacing.sm)
 
-            // Bottom card overlay
-            if let city = selectedCity {
-                VStack {
-                    Spacer()
-                    CityMapCard(
-                        city: city,
-                        match: matchForCity(city.id),
-                        isSaved: coordinator.savedCitiesService.isSaved(cityId: city.id),
-                        onSaveToggle: {
-                            Task {
-                                await coordinator.savedCitiesService.toggleSave(cityId: city.id)
+                // Bottom card overlay
+                if let city = selectedCity {
+                    VStack {
+                        Spacer()
+                        CityMapCard(
+                            city: city,
+                            match: matchForCity(city.id),
+                            isSaved: coordinator.savedCitiesService.isSaved(cityId: city.id),
+                            onSaveToggle: {
+                                Task {
+                                    await coordinator.savedCitiesService.toggleSave(cityId: city.id)
+                                }
+                            },
+                            onDismiss: {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    selectedCity = nil
+                                }
                             }
-                        },
-                        onDismiss: {
-                            withAnimation(.easeInOut(duration: 0.25)) {
-                                selectedCity = nil
-                            }
-                        }
-                    )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding(.horizontal, TeleportTheme.Spacing.md)
-                    .padding(.bottom, TeleportTheme.Spacing.md)
+                        )
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.horizontal, TeleportTheme.Spacing.md)
+                        .padding(.bottom, TeleportTheme.Spacing.md)
+                    }
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: City.self) { city in
+                CityDetailView(city: city)
+            }
+            .task {
+                await coordinator.cityService.fetchAllCities()
+                await coordinator.savedCitiesService.loadSavedCities()
+            }
         }
-        .task {
-            await coordinator.cityService.fetchAllCities()
-            await coordinator.savedCitiesService.loadSavedCities()
+        .tint(TeleportTheme.Colors.textPrimary)
+        .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("map")
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("map", durationMs: ms, exitType: "tab_switch")
         }
     }
 
@@ -120,6 +145,10 @@ struct CityMapView: View {
                     title: filter.rawValue,
                     isSelected: activeFilter == filter
                 ) {
+                    analytics.track("map_filter_changed", screen: "map", properties: [
+                        "filter": filter.rawValue.lowercased(),
+                        "previous_filter": activeFilter.rawValue.lowercased()
+                    ])
                     withAnimation(.easeInOut(duration: 0.2)) {
                         activeFilter = filter
                         selectedCity = nil
@@ -284,6 +313,25 @@ private struct CityMapCard: View {
                     }
                 }
                 .padding(TeleportTheme.Spacing.md)
+
+                // View Details button
+                NavigationLink(value: city) {
+                    HStack(spacing: TeleportTheme.Spacing.sm) {
+                        Text("View Details")
+                            .font(TeleportTheme.Typography.cardTitle(14))
+
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(TeleportTheme.Colors.background)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, TeleportTheme.Spacing.sm)
+                    .background(TeleportTheme.Colors.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, TeleportTheme.Spacing.md)
+                .padding(.bottom, TeleportTheme.Spacing.md)
             }
         }
     }

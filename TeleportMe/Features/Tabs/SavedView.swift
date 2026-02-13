@@ -4,6 +4,8 @@ import SwiftUI
 
 struct SavedView: View {
     @Environment(AppCoordinator.self) private var coordinator
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     private var savedCitiesService: SavedCitiesService {
         coordinator.savedCitiesService
@@ -38,6 +40,20 @@ struct SavedView: View {
             .navigationTitle("Saved Cities")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .navigationDestination(for: City.self) { city in
+                CityDetailView(city: city)
+            }
+        }
+        .tint(TeleportTheme.Colors.textPrimary)
+        .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("saved", properties: [
+                "saved_count": String(savedCitiesService.savedCities.count)
+            ])
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("saved", durationMs: ms, exitType: "tab_switch")
         }
         .task {
             await savedCitiesService.loadSavedCities()
@@ -103,15 +119,18 @@ struct SavedView: View {
         List {
             ForEach(savedCitiesService.savedCities) { savedCity in
                 if let city = city(for: savedCity) {
-                    savedCityRow(city: city, savedCity: savedCity)
-                        .listRowBackground(TeleportTheme.Colors.background)
-                        .listRowSeparatorTint(TeleportTheme.Colors.border)
-                        .listRowInsets(EdgeInsets(
-                            top: TeleportTheme.Spacing.sm,
-                            leading: TeleportTheme.Spacing.md,
-                            bottom: TeleportTheme.Spacing.sm,
-                            trailing: TeleportTheme.Spacing.md
-                        ))
+                    NavigationLink(value: city) {
+                        savedCityRow(city: city, savedCity: savedCity)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(TeleportTheme.Colors.background)
+                    .listRowSeparatorTint(TeleportTheme.Colors.border)
+                    .listRowInsets(EdgeInsets(
+                        top: TeleportTheme.Spacing.sm,
+                        leading: TeleportTheme.Spacing.md,
+                        bottom: TeleportTheme.Spacing.sm,
+                        trailing: TeleportTheme.Spacing.md
+                    ))
                 }
             }
             .onDelete { indexSet in
@@ -164,6 +183,8 @@ struct SavedView: View {
 
                 // Heart button to unsave
                 Button {
+                    analytics.trackButtonTap("unsave", screen: "saved", properties: ["city_id": city.id])
+                    analytics.track("city_unsaved", screen: "saved", properties: ["city_id": city.id])
                     Task {
                         await savedCitiesService.toggleSave(cityId: city.id)
                     }

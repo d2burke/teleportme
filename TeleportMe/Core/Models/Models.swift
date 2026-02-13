@@ -135,6 +135,9 @@ struct UserPreferences: Codable {
     var climatePreference: Double
     var culturePreference: Double
     var jobMarketPreference: Double
+    var safetyPreference: Double
+    var commutePreference: Double
+    var healthcarePreference: Double
 
     enum CodingKeys: String, CodingKey {
         case startType = "start_type"
@@ -142,6 +145,9 @@ struct UserPreferences: Codable {
         case climatePreference = "climate_preference"
         case culturePreference = "culture_preference"
         case jobMarketPreference = "job_market_preference"
+        case safetyPreference = "safety_preference"
+        case commutePreference = "commute_preference"
+        case healthcarePreference = "healthcare_preference"
     }
 
     static var defaults: UserPreferences {
@@ -150,8 +156,66 @@ struct UserPreferences: Codable {
             costPreference: 5.0,
             climatePreference: 5.0,
             culturePreference: 5.0,
-            jobMarketPreference: 5.0
+            jobMarketPreference: 5.0,
+            safetyPreference: 5.0,
+            commutePreference: 5.0,
+            healthcarePreference: 5.0
         )
+    }
+
+    /// Prefill preferences based on a city's actual scores.
+    /// Maps each score category to its corresponding preference,
+    /// so the user starts with values that reflect their chosen city.
+    static func fromCity(_ city: CityWithScores) -> UserPreferences {
+        UserPreferences(
+            startType: .cityILove,
+            costPreference: city.score(for: "Cost of Living").clamped(to: 0...10),
+            climatePreference: city.score(for: "Environmental Quality").clamped(to: 0...10),
+            culturePreference: city.score(for: "Leisure & Culture").clamped(to: 0...10),
+            jobMarketPreference: city.score(for: "Economy").clamped(to: 0...10),
+            safetyPreference: city.score(for: "Safety").clamped(to: 0...10),
+            commutePreference: city.score(for: "Commute").clamped(to: 0...10),
+            healthcarePreference: city.score(for: "Healthcare").clamped(to: 0...10)
+        )
+    }
+
+    // Support decoding from older caches that lack the new fields
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        startType = try container.decodeIfPresent(StartType.self, forKey: .startType) ?? .cityILove
+        costPreference = try container.decodeIfPresent(Double.self, forKey: .costPreference) ?? 5.0
+        climatePreference = try container.decodeIfPresent(Double.self, forKey: .climatePreference) ?? 5.0
+        culturePreference = try container.decodeIfPresent(Double.self, forKey: .culturePreference) ?? 5.0
+        jobMarketPreference = try container.decodeIfPresent(Double.self, forKey: .jobMarketPreference) ?? 5.0
+        safetyPreference = try container.decodeIfPresent(Double.self, forKey: .safetyPreference) ?? 5.0
+        commutePreference = try container.decodeIfPresent(Double.self, forKey: .commutePreference) ?? 5.0
+        healthcarePreference = try container.decodeIfPresent(Double.self, forKey: .healthcarePreference) ?? 5.0
+    }
+
+    init(
+        startType: StartType = .cityILove,
+        costPreference: Double = 5.0,
+        climatePreference: Double = 5.0,
+        culturePreference: Double = 5.0,
+        jobMarketPreference: Double = 5.0,
+        safetyPreference: Double = 5.0,
+        commutePreference: Double = 5.0,
+        healthcarePreference: Double = 5.0
+    ) {
+        self.startType = startType
+        self.costPreference = costPreference
+        self.climatePreference = climatePreference
+        self.culturePreference = culturePreference
+        self.jobMarketPreference = jobMarketPreference
+        self.safetyPreference = safetyPreference
+        self.commutePreference = commutePreference
+        self.healthcarePreference = healthcarePreference
+    }
+}
+
+private extension Double {
+    func clamped(to range: ClosedRange<Double>) -> Double {
+        min(max(self, range.lowerBound), range.upperBound)
     }
 }
 
@@ -161,7 +225,44 @@ enum StartType: String, Codable {
     case myWords = "my_words"
 }
 
-// MARK: - City Report (from edge function)
+// MARK: - Exploration (named, repeatable analysis)
+
+struct Exploration: Codable, Identifiable, Hashable {
+    let id: String?
+    let userId: String?
+    var title: String
+    let startType: StartType
+    let baselineCityId: String?
+    let preferences: ReportPreferences?
+    let results: [CityMatch]
+    let aiSummary: String?
+    let vibeTags: [String]?
+    let freeText: String?
+    let createdAt: Date?
+    var updatedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, preferences, results, title
+        case userId = "user_id"
+        case startType = "start_type"
+        case baselineCityId = "baseline_city_id"
+        case aiSummary = "ai_summary"
+        case vibeTags = "vibe_tags"
+        case freeText = "free_text"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: Exploration, rhs: Exploration) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+// MARK: - City Report (legacy — from edge function)
 
 struct CityReport: Codable, Identifiable, Hashable {
     let id: String?
@@ -244,12 +345,21 @@ struct ComparisonMetric: Codable {
 
 struct GenerateReportResponse: Codable {
     let reportId: String?
+    let explorationId: String?
     let currentCity: CurrentCityInfo?
     let matches: [CityMatch]
+
+    init(reportId: String?, explorationId: String? = nil, currentCity: CurrentCityInfo?, matches: [CityMatch]) {
+        self.reportId = reportId
+        self.explorationId = explorationId
+        self.currentCity = currentCity
+        self.matches = matches
+    }
 
     enum CodingKeys: String, CodingKey {
         case matches
         case reportId = "report_id"
+        case explorationId = "exploration_id"
         case currentCity = "current_city"
     }
 }

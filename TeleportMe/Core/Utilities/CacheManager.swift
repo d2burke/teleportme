@@ -13,6 +13,10 @@ enum CacheKey {
     case pastReports(userId: String)
     case preferences(userId: String)
     case selectedCity(userId: String)
+    case explorations(userId: String)
+
+    // Global analytics queue (persisted on flush failure / background)
+    case analyticsQueue
 
     var filename: String {
         switch self {
@@ -23,12 +27,14 @@ enum CacheKey {
         case .pastReports: return "past_reports.json"
         case .preferences: return "preferences.json"
         case .selectedCity: return "selected_city.json"
+        case .explorations: return "explorations.json"
+        case .analyticsQueue: return "analytics_queue.json"
         }
     }
 
     var isGlobal: Bool {
         switch self {
-        case .cities, .cityScores: return true
+        case .cities, .cityScores, .analyticsQueue: return true
         default: return false
         }
     }
@@ -37,9 +43,9 @@ enum CacheKey {
         switch self {
         case .savedCities(let id), .currentReport(let id),
              .pastReports(let id), .preferences(let id),
-             .selectedCity(let id):
+             .selectedCity(let id), .explorations(let id):
             return id
-        case .cities, .cityScores:
+        case .cities, .cityScores, .analyticsQueue:
             return nil
         }
     }

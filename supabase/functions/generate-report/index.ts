@@ -9,12 +9,17 @@ const corsHeaders = {
 };
 
 interface RequestBody {
-  current_city_id: string;
+  current_city_id?: string;       // Optional — null for vibes/words start types
+  start_type?: string;            // "city_i_love" | "vibes" | "my_words" (default: "city_i_love")
+  title?: string;                 // Exploration title (default: "Untitled Exploration")
   preferences: {
     cost: number;
     climate: number;
     culture: number;
     job_market: number;
+    safety?: number;
+    commute?: number;
+    healthcare?: number;
   };
 }
 
@@ -59,41 +64,56 @@ serve(async (req) => {
       userId = user?.id ?? null;
     }
 
-    const { current_city_id, preferences }: RequestBody = await req.json();
+    const { current_city_id, start_type, title, preferences }: RequestBody = await req.json();
+
+    const effectiveStartType = start_type ?? "city_i_love";
+    const effectiveTitle = title ?? "Untitled Exploration";
+    const hasBaselineCity = !!current_city_id;
 
     // ------------------------------------------------------------------
-    // 1. Fetch current city + its scores
+    // 1. Fetch current city + its scores (only if baseline city provided)
     // ------------------------------------------------------------------
-    const { data: currentCity } = await supabase
-      .from("cities")
-      .select("id, name, full_name, country, image_url")
-      .eq("id", current_city_id)
-      .single<CityRow>();
-
-    if (!currentCity) {
-      return new Response(
-        JSON.stringify({ error: "Current city not found" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { data: currentScoresRaw } = await supabase
-      .from("city_scores")
-      .select("category, score")
-      .eq("city_id", current_city_id);
-
+    let currentCity: CityRow | null = null;
     const currentScores: Record<string, number> = {};
-    for (const s of (currentScoresRaw ?? []) as CityScoreRow[]) {
-      currentScores[s.category] = s.score;
+
+    if (hasBaselineCity) {
+      const { data: cityData } = await supabase
+        .from("cities")
+        .select("id, name, full_name, country, image_url")
+        .eq("id", current_city_id)
+        .single<CityRow>();
+
+      if (!cityData) {
+        return new Response(
+          JSON.stringify({ error: "Current city not found" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      currentCity = cityData;
+
+      const { data: currentScoresRaw } = await supabase
+        .from("city_scores")
+        .select("category, score")
+        .eq("city_id", current_city_id);
+
+      for (const s of (currentScoresRaw ?? []) as CityScoreRow[]) {
+        currentScores[s.category] = s.score;
+      }
     }
 
     // ------------------------------------------------------------------
     // 2. Fetch all candidate cities + scores
     // ------------------------------------------------------------------
-    const { data: allCities } = await supabase
+    let cityQuery = supabase
       .from("cities")
-      .select("id, name, full_name, country, image_url")
-      .neq("id", current_city_id);
+      .select("id, name, full_name, country, image_url");
+
+    // Exclude baseline city from candidates if one was provided
+    if (hasBaselineCity) {
+      cityQuery = cityQuery.neq("id", current_city_id!);
+    }
+
+    const { data: allCities } = await cityQuery;
 
     const { data: allScoresRaw } = await supabase
       .from("city_scores")
@@ -109,19 +129,15 @@ serve(async (req) => {
     // ------------------------------------------------------------------
     // 3. Algorithmic scoring — rank cities by preference alignment
     // ------------------------------------------------------------------
+    // Build preference weights — all 7 user-facing preferences are first-class
     const prefWeights = [
-      { category: "Cost of Living", weight: preferences.cost, direction: 1 },
-      {
-        category: "Environmental Quality",
-        weight: preferences.climate,
-        direction: 1,
-      },
-      {
-        category: "Leisure & Culture",
-        weight: preferences.culture,
-        direction: 1,
-      },
-      { category: "Economy", weight: preferences.job_market, direction: 1 },
+      { category: "Cost of Living", weight: preferences.cost },
+      { category: "Environmental Quality", weight: preferences.climate },
+      { category: "Leisure & Culture", weight: preferences.culture },
+      { category: "Economy", weight: preferences.job_market },
+      { category: "Safety", weight: preferences.safety ?? 5 },
+      { category: "Commute", weight: preferences.commute ?? 5 },
+      { category: "Healthcare", weight: preferences.healthcare ?? 5 },
     ];
 
     type ScoredCity = {
@@ -146,14 +162,8 @@ serve(async (req) => {
           totalWeight += prefNorm;
         }
 
-        // Add bonus for categories the user didn't explicitly weight
-        const bonusCategories = [
-          "Safety",
-          "Healthcare",
-          "Commute",
-          "Internet Access",
-          "Tolerance",
-        ];
+        // Light bonus for categories not directly controlled by user
+        const bonusCategories = ["Internet Access", "Tolerance"];
         for (const cat of bonusCategories) {
           const val = cityScores[cat] ?? 5;
           weightedScore += (val / 10) * 10; // light bonus
@@ -178,21 +188,26 @@ serve(async (req) => {
     const candidatesSummary = topCandidates
       .map(
         (c: ScoredCity) =>
-          `id="${c.city.id}" — ${c.city.name} (${c.city.country}) — algo score: ${c.matchScore}, key scores: Cost=${c.scores["Cost of Living"] ?? "?"}, Climate=${c.scores["Environmental Quality"] ?? "?"}, Culture=${c.scores["Leisure & Culture"] ?? "?"}, Jobs=${c.scores["Economy"] ?? "?"}`
+          `id="${c.city.id}" — ${c.city.name} (${c.city.country}) — algo score: ${c.matchScore}, scores: Cost=${c.scores["Cost of Living"] ?? "?"}, Climate=${c.scores["Environmental Quality"] ?? "?"}, Culture=${c.scores["Leisure & Culture"] ?? "?"}, Jobs=${c.scores["Economy"] ?? "?"}, Safety=${c.scores["Safety"] ?? "?"}, Transit=${c.scores["Commute"] ?? "?"}, Health=${c.scores["Healthcare"] ?? "?"}`
       )
       .join("\n");
 
     const validIds = topCandidates.map((c: ScoredCity) => c.city.id);
 
-    const gptPrompt = `You are a city relocation advisor. A user currently lives in ${currentCity.name}, ${currentCity.country}.
+    const baselinePart = hasBaselineCity
+      ? `A user currently lives in ${currentCity!.name}, ${currentCity!.country}.\n\nCurrent city scores: ${JSON.stringify(currentScores)}`
+      : `A user is exploring cities to visit or relocate to. They have not specified a current city.`;
+
+    const gptPrompt = `You are a city relocation advisor. ${baselinePart}
 
 Their preferences (1-10 scale where 10 = most important):
 - Affordable cost of living: ${preferences.cost}/10
 - Good climate/environment: ${preferences.climate}/10
 - Rich culture & leisure: ${preferences.culture}/10
 - Strong job market: ${preferences.job_market}/10
-
-Current city scores: ${JSON.stringify(currentScores)}
+- Safety: ${preferences.safety ?? 5}/10
+- Public transit & commute: ${preferences.commute ?? 5}/10
+- Healthcare quality: ${preferences.healthcare ?? 5}/10
 
 Here are the top algorithmic candidates:
 ${candidatesSummary}
@@ -246,7 +261,9 @@ Pick 3 to 5 cities. Return valid JSON only, no markdown.`;
       "Environmental Quality",
       "Leisure & Culture",
       "Economy",
+      "Safety",
       "Commute",
+      "Healthcare",
     ];
 
     const matches = gptPicks.map(
@@ -286,20 +303,50 @@ Pick 3 to 5 cities. Return valid JSON only, no markdown.`;
     ).filter(Boolean);
 
     // ------------------------------------------------------------------
-    // 6. Save report to DB
+    // 6. Save to DB — write to both explorations (new) and city_reports (legacy)
     // ------------------------------------------------------------------
     let reportId: string | null = null;
+    let explorationId: string | null = null;
+
     if (userId) {
-      const { data: report } = await supabase
-        .from("city_reports")
+      // Write to new explorations table
+      const { data: exploration } = await supabase
+        .from("explorations")
         .insert({
           user_id: userId,
-          current_city_id,
+          title: effectiveTitle,
+          start_type: effectiveStartType,
+          baseline_city_id: current_city_id ?? null,
           preferences: {
             cost: preferences.cost,
             climate: preferences.climate,
             culture: preferences.culture,
             job_market: preferences.job_market,
+            safety: preferences.safety ?? 5,
+            commute: preferences.commute ?? 5,
+            healthcare: preferences.healthcare ?? 5,
+          },
+          results: matches,
+        })
+        .select("id")
+        .single();
+
+      explorationId = exploration?.id ?? null;
+
+      // Also write to legacy city_reports for backward compat
+      const { data: report } = await supabase
+        .from("city_reports")
+        .insert({
+          user_id: userId,
+          current_city_id: current_city_id ?? null,
+          preferences: {
+            cost: preferences.cost,
+            climate: preferences.climate,
+            culture: preferences.culture,
+            job_market: preferences.job_market,
+            safety: preferences.safety ?? 5,
+            commute: preferences.commute ?? 5,
+            healthcare: preferences.healthcare ?? 5,
           },
           results: matches,
         })
@@ -314,11 +361,14 @@ Pick 3 to 5 cities. Return valid JSON only, no markdown.`;
     // ------------------------------------------------------------------
     const response = {
       report_id: reportId,
-      current_city: {
-        id: currentCity.id,
-        name: currentCity.name,
-        scores: currentScores,
-      },
+      exploration_id: explorationId,
+      current_city: hasBaselineCity
+        ? {
+            id: currentCity!.id,
+            name: currentCity!.name,
+            scores: currentScores,
+          }
+        : null,
       matches,
     };
 

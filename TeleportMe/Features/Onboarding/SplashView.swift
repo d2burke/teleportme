@@ -5,6 +5,8 @@ struct SplashView: View {
     @State private var cardsAppeared = false
     @State private var textAppeared = false
     @State private var showSignIn = false
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
     #if DEBUG
     @State private var showDevMode = false
     #endif
@@ -34,6 +36,7 @@ struct SplashView: View {
                     Spacer()
 
                     Button("Sign in") {
+                        analytics.trackButtonTap("sign_in", screen: "splash")
                         showSignIn = true
                     }
                     .font(TeleportTheme.Typography.cardTitle(15))
@@ -102,6 +105,7 @@ struct SplashView: View {
                     .offset(y: textAppeared ? 0 : 20)
 
                     TeleportButton(title: "Let's roll") {
+                        analytics.trackButtonTap("lets_roll", screen: "splash")
                         coordinator.startOnboarding()
                     }
                     .padding(.horizontal, TeleportTheme.Spacing.lg)
@@ -111,12 +115,18 @@ struct SplashView: View {
             }
         }
         .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("splash")
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
                 cardsAppeared = true
             }
             withAnimation(.easeOut(duration: 0.5).delay(0.5)) {
                 textAppeared = true
             }
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("splash", durationMs: ms, exitType: "advanced")
         }
         .sheet(isPresented: $showSignIn) {
             SignInView()

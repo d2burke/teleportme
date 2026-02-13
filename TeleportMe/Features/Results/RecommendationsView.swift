@@ -5,6 +5,8 @@ struct RecommendationsView: View {
     @State private var appeared = false
     @State private var selectedMatchIndex = 0
     @State private var showShareSheet = false
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     private var matches: [CityMatch] {
         coordinator.reportService.currentReport?.matches ?? []
@@ -67,6 +69,11 @@ struct RecommendationsView: View {
                                             )
                                     )
                                     .onTapGesture {
+                                        analytics.track("match_card_tapped", screen: "recommendations", properties: [
+                                            "city_id": match.cityId,
+                                            "rank": String(match.rank),
+                                            "match_percent": String(match.matchPercent)
+                                        ])
                                         withAnimation(.easeInOut(duration: 0.2)) {
                                             selectedMatchIndex = index
                                         }
@@ -159,10 +166,21 @@ struct RecommendationsView: View {
             // Bottom CTA bar
             HStack(spacing: TeleportTheme.Spacing.md) {
                 TeleportButton(title: "Share", icon: "square.and.arrow.up", style: .secondary) {
+                    analytics.trackButtonTap("share", screen: "recommendations", properties: [
+                        "match_count": String(matches.count)
+                    ])
                     showShareSheet = true
                 }
 
                 TeleportButton(title: "Let's Go") {
+                    let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+                    analytics.trackButtonTap("done", screen: "recommendations")
+                    analytics.track("onboarding_completed", screen: "recommendations", properties: [
+                        "total_duration_ms": String(ms),
+                        "cities_saved_count": String(coordinator.savedCitiesService.savedCities.count),
+                        "top_match_city_id": matches.first?.cityId ?? "",
+                        "top_match_percent": String(matches.first?.matchPercent ?? 0)
+                    ])
                     coordinator.completeOnboarding()
                 }
             }
@@ -176,6 +194,17 @@ struct RecommendationsView: View {
                 )
             )
         }
+        .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("recommendations")
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("recommendations", durationMs: ms, exitType: "completed", properties: [
+                "cities_saved_count": String(coordinator.savedCitiesService.savedCities.count),
+                "cities_viewed_count": String(matches.count)
+            ])
+        }
         .sheet(isPresented: $showShareSheet) {
             ActivityView(text: shareText)
         }
@@ -185,7 +214,22 @@ struct RecommendationsView: View {
 
     private func saveButton(cityId: String) -> some View {
         let isSaved = coordinator.savedCitiesService.isSaved(cityId: cityId)
+        let match = matches.first(where: { $0.cityId == cityId })
         return Button {
+            let action = isSaved ? "unsave" : "save"
+            analytics.trackButtonTap("save_city", screen: "recommendations", properties: [
+                "city_id": cityId,
+                "action": action,
+                "rank": String(match?.rank ?? 0),
+                "match_percent": String(match?.matchPercent ?? 0)
+            ])
+            if !isSaved {
+                analytics.track("city_saved", screen: "recommendations", properties: [
+                    "city_id": cityId,
+                    "rank": String(match?.rank ?? 0),
+                    "match_percent": String(match?.matchPercent ?? 0)
+                ])
+            }
             Task {
                 await coordinator.savedCitiesService.toggleSave(cityId: cityId)
             }
@@ -223,6 +267,8 @@ struct ComparisonCard: View {
     let matchCityName: String
     let currentCityName: String
 
+    @State private var showInfo = false
+
     private var icon: String {
         switch category {
         case "Housing": return "house"
@@ -241,6 +287,10 @@ struct ComparisonCard: View {
         TeleportTheme.Colors.forCategory(category)
     }
 
+    private var explainer: MetricExplainer? {
+        MetricExplainer.forCategory(category)
+    }
+
     var body: some View {
         CardView {
             VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
@@ -250,6 +300,46 @@ struct ComparisonCard: View {
                     Text(category)
                         .font(TeleportTheme.Typography.cardTitle())
                         .foregroundStyle(TeleportTheme.Colors.textPrimary)
+
+                    Spacer()
+
+                    if explainer != nil {
+                        Button {
+                            if !showInfo {
+                                AnalyticsService.shared.track("comparison_info_tapped", screen: "recommendations", properties: [
+                                    "category": category
+                                ])
+                            }
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                showInfo.toggle()
+                            }
+                        } label: {
+                            Image(systemName: showInfo ? "xmark.circle.fill" : "info.circle")
+                                .font(.system(size: 16))
+                                .foregroundStyle(
+                                    showInfo
+                                        ? TeleportTheme.Colors.textSecondary
+                                        : TeleportTheme.Colors.textTertiary
+                                )
+                                .contentTransition(.symbolEffect(.replace))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                if showInfo, let explainer {
+                    Text(explainer.summary)
+                        .font(TeleportTheme.Typography.caption(12))
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(TeleportTheme.Spacing.sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(TeleportTheme.Colors.surfaceElevated)
+                        .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.small))
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .top)),
+                            removal: .opacity.combined(with: .scale(scale: 0.95, anchor: .top))
+                        ))
                 }
 
                 ComparisonBar(

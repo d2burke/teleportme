@@ -9,9 +9,15 @@
           "/profile",
           "/discover",
           "/saved",
-          "/map"
+          "/map",
+          "/search"
         ]
       }
+    ]
+  },
+  "appclips": {
+    "apps": [
+      "973RBN29J8.app.TeleportMe.Clip"
     ]
   }
 }

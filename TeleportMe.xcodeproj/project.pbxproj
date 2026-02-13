@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8269D3422F3F9C110000E27B /* Clip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 8269D31E2F3F9C100000E27B /* Clip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		826AA0202F3FA0020000E27B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 826AA0102F3FA0010000E27B /* Supabase */; };
+		826AA0212F3FA0020000E27B /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 826AA0112F3FA0010000E27B /* Functions */; };
+		826AA0222F3FA0020000E27B /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 826AA0122F3FA0010000E27B /* PostgREST */; };
 		82E9A3EB2F3D6F2D00DD425A /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 82E9A3EA2F3D6F2D00DD425A /* Auth */; };
 		82E9A3ED2F3D6F2D00DD425A /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 82E9A3EC2F3D6F2D00DD425A /* Functions */; };
 		82E9A3EF2F3D6F2D00DD425A /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 82E9A3EE2F3D6F2D00DD425A /* PostgREST */; };
@@ -16,6 +20,27 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		8269D32F2F3F9C110000E27B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 82E9A3B52F3D6EBA00DD425A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8269D31D2F3F9C100000E27B;
+			remoteInfo = Clip;
+		};
+		8269D3392F3F9C110000E27B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 82E9A3B52F3D6EBA00DD425A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8269D31D2F3F9C100000E27B;
+			remoteInfo = Clip;
+		};
+		8269D3402F3F9C110000E27B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 82E9A3B52F3D6EBA00DD425A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8269D31D2F3F9C100000E27B;
+			remoteInfo = Clip;
+		};
 		82E9A3CD2F3D6EBB00DD425A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 82E9A3B52F3D6EBA00DD425A /* Project object */;
@@ -32,15 +57,87 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		8269D3472F3F9C110000E27B /* Embed App Clips */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
+			dstSubfolderSpec = 16;
+			files = (
+				8269D3422F3F9C110000E27B /* Clip.app in Embed App Clips */,
+			);
+			name = "Embed App Clips";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		8269D31E2F3F9C100000E27B /* Clip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8269D32E2F3F9C110000E27B /* ClipTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8269D3382F3F9C110000E27B /* ClipUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		82E9A3BD2F3D6EBA00DD425A /* TeleportMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeleportMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		82E9A3CC2F3D6EBB00DD425A /* TeleportMeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeleportMeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		82E9A3D62F3D6EBB00DD425A /* TeleportMeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeleportMeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8269D3432F3F9C110000E27B /* Exceptions for "Clip" folder in "Clip" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8269D31D2F3F9C100000E27B /* Clip */;
+		};
+		826AA0012F3FA0000000E27B /* Exceptions for "TeleportMe" folder in "Clip" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Config/Secrets.swift,
+				Core/Design/Components.swift,
+				Core/Design/TeleportTheme.swift,
+				Core/Models/Models.swift,
+				Core/Services/AnalyticsService.swift,
+				Core/Services/CityService.swift,
+				Core/Services/ExplorationService.swift,
+				Core/Services/SupabaseManager.swift,
+				Core/Utilities/AsyncHelpers.swift,
+				Core/Utilities/CacheManager.swift,
+			);
+			target = 8269D31D2F3F9C100000E27B /* Clip */;
+		};
+		826AA0022F3FA0010000E27B /* Exceptions for "TeleportMe" folder in "TeleportMe" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 82E9A3BC2F3D6EBA00DD425A /* TeleportMe */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		8269D31F2F3F9C100000E27B /* Clip */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8269D3432F3F9C110000E27B /* Exceptions for "Clip" folder in "Clip" target */,
+			);
+			path = Clip;
+			sourceTree = "<group>";
+		};
+		8269D3312F3F9C110000E27B /* ClipTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ClipTests;
+			sourceTree = "<group>";
+		};
+		8269D33B2F3F9C110000E27B /* ClipUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ClipUITests;
+			sourceTree = "<group>";
+		};
 		82E9A3BF2F3D6EBA00DD425A /* TeleportMe */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				826AA0022F3FA0010000E27B /* Exceptions for "TeleportMe" folder in "TeleportMe" target */,
+				826AA0012F3FA0000000E27B /* Exceptions for "TeleportMe" folder in "Clip" target */,
+			);
 			path = TeleportMe;
 			sourceTree = "<group>";
 		};
@@ -57,6 +154,30 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		8269D31B2F3F9C100000E27B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				826AA0202F3FA0020000E27B /* Supabase in Frameworks */,
+				826AA0212F3FA0020000E27B /* Functions in Frameworks */,
+				826AA0222F3FA0020000E27B /* PostgREST in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8269D32B2F3F9C110000E27B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8269D3352F3F9C110000E27B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		82E9A3BA2F3D6EBA00DD425A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -93,6 +214,9 @@
 				82E9A3BF2F3D6EBA00DD425A /* TeleportMe */,
 				82E9A3CF2F3D6EBB00DD425A /* TeleportMeTests */,
 				82E9A3D92F3D6EBB00DD425A /* TeleportMeUITests */,
+				8269D31F2F3F9C100000E27B /* Clip */,
+				8269D3312F3F9C110000E27B /* ClipTests */,
+				8269D33B2F3F9C110000E27B /* ClipUITests */,
 				82E9A3BE2F3D6EBA00DD425A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +227,9 @@
 				82E9A3BD2F3D6EBA00DD425A /* TeleportMe.app */,
 				82E9A3CC2F3D6EBB00DD425A /* TeleportMeTests.xctest */,
 				82E9A3D62F3D6EBB00DD425A /* TeleportMeUITests.xctest */,
+				8269D31E2F3F9C100000E27B /* Clip.app */,
+				8269D32E2F3F9C110000E27B /* ClipTests.xctest */,
+				8269D3382F3F9C110000E27B /* ClipUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,6 +237,77 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		8269D31D2F3F9C100000E27B /* Clip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8269D3442F3F9C110000E27B /* Build configuration list for PBXNativeTarget "Clip" */;
+			buildPhases = (
+				8269D31A2F3F9C100000E27B /* Sources */,
+				8269D31B2F3F9C100000E27B /* Frameworks */,
+				8269D31C2F3F9C100000E27B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8269D31F2F3F9C100000E27B /* Clip */,
+			);
+			name = Clip;
+			packageProductDependencies = (
+				826AA0102F3FA0010000E27B /* Supabase */,
+				826AA0112F3FA0010000E27B /* Functions */,
+				826AA0122F3FA0010000E27B /* PostgREST */,
+			);
+			productName = Clip;
+			productReference = 8269D31E2F3F9C100000E27B /* Clip.app */;
+			productType = "com.apple.product-type.application.on-demand-install-capable";
+		};
+		8269D32D2F3F9C110000E27B /* ClipTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8269D3482F3F9C110000E27B /* Build configuration list for PBXNativeTarget "ClipTests" */;
+			buildPhases = (
+				8269D32A2F3F9C110000E27B /* Sources */,
+				8269D32B2F3F9C110000E27B /* Frameworks */,
+				8269D32C2F3F9C110000E27B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8269D3302F3F9C110000E27B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8269D3312F3F9C110000E27B /* ClipTests */,
+			);
+			name = ClipTests;
+			packageProductDependencies = (
+			);
+			productName = ClipTests;
+			productReference = 8269D32E2F3F9C110000E27B /* ClipTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8269D3372F3F9C110000E27B /* ClipUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8269D34B2F3F9C110000E27B /* Build configuration list for PBXNativeTarget "ClipUITests" */;
+			buildPhases = (
+				8269D3342F3F9C110000E27B /* Sources */,
+				8269D3352F3F9C110000E27B /* Frameworks */,
+				8269D3362F3F9C110000E27B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8269D33A2F3F9C110000E27B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8269D33B2F3F9C110000E27B /* ClipUITests */,
+			);
+			name = ClipUITests;
+			packageProductDependencies = (
+			);
+			productName = ClipUITests;
+			productReference = 8269D3382F3F9C110000E27B /* ClipUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		82E9A3BC2F3D6EBA00DD425A /* TeleportMe */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 82E9A3E02F3D6EBB00DD425A /* Build configuration list for PBXNativeTarget "TeleportMe" */;
@@ -117,10 +315,12 @@
 				82E9A3B92F3D6EBA00DD425A /* Sources */,
 				82E9A3BA2F3D6EBA00DD425A /* Frameworks */,
 				82E9A3BB2F3D6EBA00DD425A /* Resources */,
+				8269D3472F3F9C110000E27B /* Embed App Clips */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8269D3412F3F9C110000E27B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				82E9A3BF2F3D6EBA00DD425A /* TeleportMe */,
@@ -194,6 +394,17 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					8269D31D2F3F9C100000E27B = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					8269D32D2F3F9C110000E27B = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 8269D31D2F3F9C100000E27B;
+					};
+					8269D3372F3F9C110000E27B = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 8269D31D2F3F9C100000E27B;
+					};
 					82E9A3BC2F3D6EBA00DD425A = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -227,11 +438,35 @@
 				82E9A3BC2F3D6EBA00DD425A /* TeleportMe */,
 				82E9A3CB2F3D6EBB00DD425A /* TeleportMeTests */,
 				82E9A3D52F3D6EBB00DD425A /* TeleportMeUITests */,
+				8269D31D2F3F9C100000E27B /* Clip */,
+				8269D32D2F3F9C110000E27B /* ClipTests */,
+				8269D3372F3F9C110000E27B /* ClipUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		8269D31C2F3F9C100000E27B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8269D32C2F3F9C110000E27B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8269D3362F3F9C110000E27B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		82E9A3BB2F3D6EBA00DD425A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -256,6 +491,27 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		8269D31A2F3F9C100000E27B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8269D32A2F3F9C110000E27B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8269D3342F3F9C110000E27B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		82E9A3B92F3D6EBA00DD425A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -280,6 +536,21 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		8269D3302F3F9C110000E27B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8269D31D2F3F9C100000E27B /* Clip */;
+			targetProxy = 8269D32F2F3F9C110000E27B /* PBXContainerItemProxy */;
+		};
+		8269D33A2F3F9C110000E27B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8269D31D2F3F9C100000E27B /* Clip */;
+			targetProxy = 8269D3392F3F9C110000E27B /* PBXContainerItemProxy */;
+		};
+		8269D3412F3F9C110000E27B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8269D31D2F3F9C100000E27B /* Clip */;
+			targetProxy = 8269D3402F3F9C110000E27B /* PBXContainerItemProxy */;
+		};
 		82E9A3CE2F3D6EBB00DD425A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 82E9A3BC2F3D6EBA00DD425A /* TeleportMe */;
@@ -293,6 +564,158 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		8269D3452F3F9C110000E27B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Clip/Clip.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 973RBN29J8;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Clip/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TeleportMe;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.TeleportMe.Clip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8269D3462F3F9C110000E27B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Clip/Clip.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 973RBN29J8;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Clip/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TeleportMe;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.TeleportMe.Clip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		8269D3492F3F9C110000E27B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 973RBN29J8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.TeleportMe.ClipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clip.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Clip";
+			};
+			name = Debug;
+		};
+		8269D34A2F3F9C110000E27B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 973RBN29J8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.TeleportMe.ClipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clip.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Clip";
+			};
+			name = Release;
+		};
+		8269D34C2F3F9C110000E27B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 973RBN29J8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.TeleportMe.ClipUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Clip;
+			};
+			name = Debug;
+		};
+		8269D34D2F3F9C110000E27B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 973RBN29J8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.TeleportMe.ClipUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Clip;
+			};
+			name = Release;
+		};
 		82E9A3DE2F3D6EBB00DD425A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -425,9 +848,9 @@
 				DEVELOPMENT_TEAM = 973RBN29J8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TeleportMe/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -458,9 +881,9 @@
 				DEVELOPMENT_TEAM = 973RBN29J8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TeleportMe/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -567,6 +990,33 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		8269D3442F3F9C110000E27B /* Build configuration list for PBXNativeTarget "Clip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8269D3452F3F9C110000E27B /* Debug */,
+				8269D3462F3F9C110000E27B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8269D3482F3F9C110000E27B /* Build configuration list for PBXNativeTarget "ClipTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8269D3492F3F9C110000E27B /* Debug */,
+				8269D34A2F3F9C110000E27B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8269D34B2F3F9C110000E27B /* Build configuration list for PBXNativeTarget "ClipUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8269D34C2F3F9C110000E27B /* Debug */,
+				8269D34D2F3F9C110000E27B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		82E9A3B82F3D6EBA00DD425A /* Build configuration list for PBXProject "TeleportMe" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -617,6 +1067,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		826AA0102F3FA0010000E27B /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 82E9A3E92F3D6F2D00DD425A /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		826AA0112F3FA0010000E27B /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 82E9A3E92F3D6F2D00DD425A /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		826AA0122F3FA0010000E27B /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 82E9A3E92F3D6F2D00DD425A /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
 		82E9A3EA2F3D6F2D00DD425A /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 82E9A3E92F3D6F2D00DD425A /* XCRemoteSwiftPackageReference "supabase-swift" */;

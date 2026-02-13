@@ -5,6 +5,9 @@ struct GeneratingView: View {
     @State private var progress: CGFloat = 0
     @State private var currentMessageIndex = 0
     @State private var error: String?
+    @State private var generationTask: Task<Void, Never>?
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     private let statusMessages = [
         "Analyzing your preferences...",
@@ -16,6 +19,26 @@ struct GeneratingView: View {
 
     var body: some View {
         VStack(spacing: TeleportTheme.Spacing.xl) {
+            // Cancel button
+            HStack {
+                Spacer()
+                Button {
+                    let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+                    analytics.trackButtonTap("cancel", screen: "generating")
+                    analytics.track("generation_cancelled", screen: "generating", properties: ["duration_ms": String(ms)])
+                    generationTask?.cancel()
+                    coordinator.goBackOnboarding(from: .generating)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                        .frame(width: 32, height: 32)
+                        .background(TeleportTheme.Colors.surface, in: Circle())
+                }
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
+            .padding(.top, TeleportTheme.Spacing.md)
+
             Spacer()
 
             // Animated globe
@@ -56,6 +79,7 @@ struct GeneratingView: View {
                         .multilineTextAlignment(.center)
 
                     TeleportButton(title: "Try Again", style: .secondary) {
+                        analytics.trackButtonTap("try_again", screen: "generating")
                         self.error = nil
                         Task { await generateReport() }
                     }
@@ -65,11 +89,22 @@ struct GeneratingView: View {
 
             Spacer()
         }
-        .background(TeleportTheme.Colors.background)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TeleportTheme.Colors.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("generating")
+            analytics.track("generation_started", screen: "generating", properties: ["source": "onboarding"])
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("generating", durationMs: ms, exitType: error != nil ? "failed" : "completed")
+        }
         .task {
-            await generateReport()
+            generationTask = Task { await generateReport() }
+            await generationTask?.value
         }
     }
 
@@ -99,10 +134,29 @@ struct GeneratingView: View {
 
             // Brief pause to show completion
             try? await Task.sleep(for: .seconds(0.5))
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.track("generation_completed", screen: "generating", properties: [
+                "duration_ms": String(ms),
+                "source": "onboarding"
+            ])
             coordinator.advanceOnboarding(from: .generating)
         } catch {
             messageTask.cancel()
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            let errorType: String
+            let desc = error.localizedDescription.lowercased()
+            if desc.contains("timeout") { errorType = "timeout" }
+            else if desc.contains("network") || desc.contains("connection") { errorType = "network" }
+            else if desc.contains("edge") || desc.contains("function") { errorType = "edge_function_error" }
+            else { errorType = "server_error" }
+            analytics.track("generation_failed", screen: "generating", properties: [
+                "error_type": errorType, "duration_ms": String(ms)
+            ])
+            #if DEBUG
+            self.error = "Error: \(error.localizedDescription)"
+            #else
             self.error = "Something went wrong. Please try again."
+            #endif
             print("Report generation failed: \(error)")
         }
     }

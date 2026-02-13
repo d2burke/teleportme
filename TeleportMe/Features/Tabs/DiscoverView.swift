@@ -4,6 +4,12 @@ import SwiftUI
 
 struct DiscoverView: View {
     @Environment(AppCoordinator.self) private var coordinator
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
+
+    private var explorations: [Exploration] {
+        coordinator.explorationService.explorations
+    }
 
     private var matches: [CityMatch] {
         coordinator.reportService.currentReport?.matches ?? []
@@ -17,35 +23,53 @@ struct DiscoverView: View {
         coordinator.cityService.allCities
     }
 
-    @State private var showAllCities = false
-
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: TeleportTheme.Spacing.xl) {
-                // MARK: Header
-                headerSection
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: TeleportTheme.Spacing.xl) {
+                    // MARK: Header
+                    headerSection
 
-                // Error banner (shown when city fetch fails)
-                if let error = coordinator.cityService.loadError {
-                    errorBanner(message: error) {
-                        Task { await coordinator.cityService.retryFetch() }
+                    // Error banner (shown when city fetch fails)
+                    if let error = coordinator.cityService.loadError {
+                        errorBanner(message: error) {
+                            Task { await coordinator.cityService.retryFetch() }
+                        }
                     }
+
+                    // MARK: Your Explorations
+                    explorationsSection
+
+                    // MARK: Latest Results (from most recent exploration/report)
+                    if !matches.isEmpty {
+                        latestMatchesSection
+                    }
+
+                    // MARK: Trending Cities
+                    trendingSection
                 }
-
-                // MARK: Your Matches
-                matchesSection
-
-                // MARK: Trending Cities
-                trendingSection
-
-                // MARK: All Cities
-                allCitiesSection
+                .padding(.bottom, TeleportTheme.Spacing.xxl)
             }
-            .padding(.bottom, TeleportTheme.Spacing.xxl)
+            .background(TeleportTheme.Colors.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: City.self) { city in
+                CityDetailView(city: city)
+            }
+            .navigationDestination(for: Exploration.self) { exploration in
+                ExplorationDetailView(exploration: exploration)
+            }
+            .task {
+                await coordinator.cityService.fetchAllCities()
+            }
         }
-        .background(TeleportTheme.Colors.background)
-        .task {
-            await coordinator.cityService.fetchAllCities()
+        .tint(TeleportTheme.Colors.textPrimary)
+        .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("discover")
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("discover", durationMs: ms, exitType: "tab_switch")
         }
     }
 
@@ -101,32 +125,61 @@ struct DiscoverView: View {
         .padding(.top, TeleportTheme.Spacing.md)
     }
 
-    // MARK: - Your Matches
+    // MARK: - Your Explorations
 
-    private var matchesSection: some View {
+    private var explorationsSection: some View {
         VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
-            SectionHeader(title: "Your Matches")
-                .padding(.horizontal, TeleportTheme.Spacing.lg)
+            HStack {
+                SectionHeader(title: "Your Explorations")
 
-            if matches.isEmpty {
-                matchesEmptyState
+                Spacer()
+
+                // "+" button to start a new exploration
+                Button {
+                    analytics.trackButtonTap("new_exploration", screen: "discover", properties: ["source": "plus_button"])
+                    coordinator.showNewExplorationModal = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(TeleportTheme.Colors.accent)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            if explorations.isEmpty {
+                explorationsEmptyState
             } else {
-                matchesCarousel
+                explorationsCarousel
             }
         }
     }
 
-    private var matchesEmptyState: some View {
+    private var explorationsEmptyState: some View {
         CardView {
             VStack(spacing: TeleportTheme.Spacing.md) {
                 Image(systemName: "sparkles")
                     .font(.system(size: 32))
                     .foregroundStyle(TeleportTheme.Colors.accent)
 
-                Text("Run the analysis to see matches")
-                    .font(TeleportTheme.Typography.body())
+                Text("No explorations yet")
+                    .font(TeleportTheme.Typography.cardTitle())
+                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
+
+                Text("Create your first exploration to discover cities that match your vibe")
+                    .font(TeleportTheme.Typography.body(14))
                     .foregroundStyle(TeleportTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
+
+                TeleportButton(
+                    title: "New Exploration",
+                    icon: "plus.circle.fill",
+                    isLoading: false
+                ) {
+                    analytics.trackButtonTap("new_exploration", screen: "discover", properties: ["source": "empty_state"])
+                    coordinator.showNewExplorationModal = true
+                }
+                .padding(.horizontal, TeleportTheme.Spacing.md)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, TeleportTheme.Spacing.xl)
@@ -134,24 +187,118 @@ struct DiscoverView: View {
         .padding(.horizontal, TeleportTheme.Spacing.lg)
     }
 
+    private var explorationsCarousel: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: TeleportTheme.Spacing.md) {
+                ForEach(explorations) { exploration in
+                    NavigationLink(value: exploration) {
+                        explorationCard(exploration)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
+        }
+    }
+
+    private func explorationCard(_ exploration: Exploration) -> some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+            // Top badge row
+            HStack {
+                // Start type icon
+                Image(systemName: startTypeIcon(exploration.startType))
+                    .font(.system(size: 14))
+                    .foregroundStyle(TeleportTheme.Colors.accent)
+
+                Spacer()
+
+                // Result count
+                Text("\(exploration.results.count) cities")
+                    .font(TeleportTheme.Typography.caption(11))
+                    .foregroundStyle(TeleportTheme.Colors.textTertiary)
+            }
+
+            // Title
+            Text(exploration.title)
+                .font(TeleportTheme.Typography.cardTitle(16))
+                .foregroundStyle(TeleportTheme.Colors.textPrimary)
+                .lineLimit(2)
+
+            // Baseline city
+            if let cityId = exploration.baselineCityId,
+               let city = allCities.first(where: { $0.id == cityId }) {
+                Text("Based on \(city.name)")
+                    .font(TeleportTheme.Typography.caption(12))
+                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            // Date
+            if let date = exploration.createdAt {
+                Text(date, style: .date)
+                    .font(TeleportTheme.Typography.caption(11))
+                    .foregroundStyle(TeleportTheme.Colors.textTertiary)
+            }
+        }
+        .padding(TeleportTheme.Spacing.md)
+        .frame(width: 180, height: 160)
+        .background(TeleportTheme.Colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.card))
+        .overlay {
+            RoundedRectangle(cornerRadius: TeleportTheme.Radius.card)
+                .strokeBorder(TeleportTheme.Colors.border, lineWidth: 1)
+        }
+    }
+
+    private func startTypeIcon(_ startType: StartType) -> String {
+        switch startType {
+        case .cityILove: return "heart.fill"
+        case .vibes: return "waveform"
+        case .myWords: return "text.quote"
+        }
+    }
+
+    // MARK: - Latest Matches (from current report)
+
+    private var latestMatchesSection: some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
+            SectionHeader(title: "Latest Results")
+                .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            matchesCarousel
+        }
+    }
+
+    /// Resolves a CityMatch to its full City model.
+    private func city(for match: CityMatch) -> City? {
+        allCities.first { $0.id == match.cityId }
+    }
+
     private var matchesCarousel: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: TeleportTheme.Spacing.md) {
                 ForEach(matches) { match in
-                    ZStack(alignment: .topTrailing) {
-                        CityHeroImage(
-                            imageURL: match.cityImageUrl,
-                            cityName: match.cityName,
-                            subtitle: match.cityCountry,
-                            height: 240,
-                            matchPercent: match.matchPercent,
-                            rank: match.rank
-                        )
-                        .frame(width: UIScreen.main.bounds.width - 80, height: 240)
+                    if let city = city(for: match) {
+                        NavigationLink(value: city) {
+                            ZStack(alignment: .topTrailing) {
+                                CityHeroImage(
+                                    imageURL: match.cityImageUrl,
+                                    cityName: match.cityName,
+                                    subtitle: match.cityCountry,
+                                    height: 240,
+                                    matchPercent: match.matchPercent,
+                                    rank: match.rank
+                                )
+                                .frame(width: UIScreen.main.bounds.width - 80, height: 240)
 
-                        saveButton(cityId: match.cityId)
-                            .padding(.top, 72)
-                            .padding(.trailing, TeleportTheme.Spacing.sm)
+                                saveButton(cityId: match.cityId)
+                                    .padding(.top, 72)
+                                    .padding(.trailing, TeleportTheme.Spacing.sm)
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -175,7 +322,10 @@ struct DiscoverView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: TeleportTheme.Spacing.md) {
                         ForEach(trendingCities) { city in
-                            trendingCityCard(city: city)
+                            NavigationLink(value: city) {
+                                trendingCityCard(city: city)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding(.horizontal, TeleportTheme.Spacing.lg)
@@ -229,90 +379,6 @@ struct DiscoverView: View {
         .frame(width: 160, height: 200)
         .background(TeleportTheme.Colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.card))
-    }
-
-    // MARK: - All Cities
-
-    private var allCitiesSection: some View {
-        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
-            SectionHeader(title: "All Cities")
-                .padding(.horizontal, TeleportTheme.Spacing.lg)
-
-            if allCities.isEmpty {
-                ProgressView()
-                    .tint(TeleportTheme.Colors.accent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, TeleportTheme.Spacing.lg)
-            } else {
-                let displayedCities = showAllCities ? allCities : Array(allCities.prefix(20))
-
-                LazyVStack(spacing: TeleportTheme.Spacing.sm) {
-                    ForEach(displayedCities) { city in
-                        cityRow(city: city)
-                    }
-                }
-                .padding(.horizontal, TeleportTheme.Spacing.lg)
-
-                if !showAllCities && allCities.count > 20 {
-                    TeleportButton(title: "See All", style: .ghost) {
-                        showAllCities = true
-                    }
-                    .padding(.horizontal, TeleportTheme.Spacing.lg)
-                }
-            }
-        }
-    }
-
-    private func cityRow(city: City) -> some View {
-        HStack(spacing: TeleportTheme.Spacing.md) {
-            // Thumbnail
-            AsyncImage(url: URL(string: city.imageUrl ?? "")) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                case .failure:
-                    Rectangle().fill(TeleportTheme.Colors.surfaceElevated)
-                default:
-                    Rectangle().fill(TeleportTheme.Colors.surfaceElevated)
-                }
-            }
-            .frame(width: 48, height: 48)
-            .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.small))
-
-            // Name + Country
-            VStack(alignment: .leading, spacing: 2) {
-                Text(city.name)
-                    .font(TeleportTheme.Typography.cardTitle(15))
-                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
-                    .lineLimit(1)
-
-                Text(city.country)
-                    .font(TeleportTheme.Typography.caption())
-                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            // Score badge
-            if let score = city.teleportCityScore {
-                Text(String(format: "%.0f", score))
-                    .font(TeleportTheme.Typography.caption(13))
-                    .foregroundStyle(TeleportTheme.Colors.background)
-                    .padding(.horizontal, TeleportTheme.Spacing.sm)
-                    .padding(.vertical, TeleportTheme.Spacing.xs)
-                    .background(TeleportTheme.Colors.accent)
-                    .clipShape(Capsule())
-            }
-
-            // Heart button
-            saveButton(cityId: city.id)
-        }
-        .padding(TeleportTheme.Spacing.sm)
-        .background(TeleportTheme.Colors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
     }
 
     // MARK: - Save Button

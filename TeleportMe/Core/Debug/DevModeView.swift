@@ -98,6 +98,7 @@ struct DevModeView: View {
 
     private var screenName: String {
         switch coordinator.currentScreen {
+        case .loading: return "Loading"
         case .splash: return "Splash"
         case .onboarding: return "Onboarding (path depth: \(coordinator.navigationPath.count))"
         case .main: return "Main"

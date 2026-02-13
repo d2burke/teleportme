@@ -7,7 +7,9 @@ struct SignUpView: View {
     @State private var confirmPassword = ""
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var screenEnteredAt = Date()
     @FocusState private var focusedField: Field?
+    private let analytics = AnalyticsService.shared
 
     enum Field: Hashable {
         case email, password, confirm
@@ -115,6 +117,8 @@ struct SignUpView: View {
                 title: "Create my account",
                 isLoading: coordinator.authService.isLoading
             ) {
+                analytics.trackButtonTap("create_account", screen: "sign_up")
+                analytics.track("signup_attempted", screen: "sign_up")
                 Task { await createAccount() }
             }
             .disabled(!isFormValid)
@@ -125,7 +129,13 @@ struct SignUpView: View {
         .background(TeleportTheme.Colors.background)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("sign_up")
             focusedField = .email
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("sign_up", durationMs: ms, exitType: "advanced")
         }
     }
 
@@ -133,6 +143,7 @@ struct SignUpView: View {
         guard isFormValid else {
             errorMessage = "Please fill in all fields. Password must be at least 6 characters."
             showError = true
+            analytics.track("signup_failed", screen: "sign_up", properties: ["error_type": "validation"])
             return
         }
 
@@ -149,10 +160,20 @@ struct SignUpView: View {
                 password: password,
                 name: coordinator.onboardingName
             )
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.track("signup_succeeded", screen: "sign_up", properties: ["duration_ms": String(ms)])
             // Load cities in background after signup
             Task { await coordinator.cityService.fetchAllCities() }
             coordinator.advanceOnboarding(from: .signUp)
         } catch {
+            let errorType: String
+            let desc = error.localizedDescription.lowercased()
+            if desc.contains("password") { errorType = "weak_password" }
+            else if desc.contains("already") || desc.contains("duplicate") { errorType = "duplicate_email" }
+            else if desc.contains("network") || desc.contains("connection") { errorType = "network" }
+            else if desc.contains("rate") { errorType = "rate_limited" }
+            else { errorType = "unknown" }
+            analytics.track("signup_failed", screen: "sign_up", properties: ["error_type": errorType])
             errorMessage = error.localizedDescription
             showError = true
         }

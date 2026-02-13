@@ -176,6 +176,12 @@ struct MetricCard: View {
     let label: String
     var color: Color = TeleportTheme.Colors.accent
 
+    @State private var showInfo = false
+
+    private var explainer: MetricExplainer? {
+        MetricExplainer.forCategory(category)
+    }
+
     var body: some View {
         CardView {
             VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
@@ -203,6 +209,22 @@ struct MetricCard: View {
                     .font(TeleportTheme.Typography.caption(13))
                     .foregroundStyle(TeleportTheme.Colors.textSecondary)
 
+                // Expandable info
+                if showInfo, let explainer {
+                    Text(explainer.summary)
+                        .font(TeleportTheme.Typography.caption(12))
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(TeleportTheme.Spacing.sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(TeleportTheme.Colors.surfaceElevated)
+                        .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.small))
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .top)),
+                            removal: .opacity.combined(with: .scale(scale: 0.95, anchor: .top))
+                        ))
+                }
+
                 ScoreBar(
                     label: "",
                     score: score,
@@ -212,10 +234,31 @@ struct MetricCard: View {
                     height: 4
                 )
 
-                Text("/ 10")
-                    .font(TeleportTheme.Typography.caption(11))
-                    .foregroundStyle(TeleportTheme.Colors.textTertiary)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                HStack {
+                    if explainer != nil {
+                        Button {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                showInfo.toggle()
+                            }
+                        } label: {
+                            Image(systemName: showInfo ? "xmark.circle.fill" : "info.circle")
+                                .font(.system(size: 14))
+                                .foregroundStyle(
+                                    showInfo
+                                        ? TeleportTheme.Colors.textSecondary
+                                        : TeleportTheme.Colors.textTertiary
+                                )
+                                .contentTransition(.symbolEffect(.replace))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Spacer()
+
+                    Text("/ 10")
+                        .font(TeleportTheme.Typography.caption(11))
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                }
             }
         }
     }
@@ -380,6 +423,259 @@ struct CityHeroImage: View {
     }
 }
 
+// MARK: - Preference Metric Definitions
+
+/// Single source of truth for preference slider configuration.
+/// All preference views should use these definitions to stay consistent.
+struct PreferenceMetric: Identifiable {
+    let id: String
+    let icon: String
+    let title: String
+    let lowLabel: String
+    let highLabel: String
+    let keyPath: WritableKeyPath<UserPreferences, Double>
+
+    /// The standard preference metrics used throughout the app.
+    static let all: [PreferenceMetric] = [
+        PreferenceMetric(
+            id: "cost",
+            icon: "banknote",
+            title: "Cost of Living",
+            lowLabel: "Lower",
+            highLabel: "Higher",
+            keyPath: \.costPreference
+        ),
+        PreferenceMetric(
+            id: "climate",
+            icon: "thermometer.sun",
+            title: "Climate",
+            lowLabel: "Colder",
+            highLabel: "Warmer",
+            keyPath: \.climatePreference
+        ),
+        PreferenceMetric(
+            id: "culture",
+            icon: "theatermasks",
+            title: "Culture & Lifestyle",
+            lowLabel: "Chill",
+            highLabel: "Vibrant",
+            keyPath: \.culturePreference
+        ),
+        PreferenceMetric(
+            id: "jobs",
+            icon: "briefcase",
+            title: "Job Market",
+            lowLabel: "Niche",
+            highLabel: "Growth",
+            keyPath: \.jobMarketPreference
+        ),
+        PreferenceMetric(
+            id: "safety",
+            icon: "shield.checkered",
+            title: "Safety",
+            lowLabel: "Flexible",
+            highLabel: "Safest",
+            keyPath: \.safetyPreference
+        ),
+        PreferenceMetric(
+            id: "commute",
+            icon: "tram",
+            title: "Commute & Transit",
+            lowLabel: "Car OK",
+            highLabel: "Transit",
+            keyPath: \.commutePreference
+        ),
+        PreferenceMetric(
+            id: "healthcare",
+            icon: "heart.text.clipboard",
+            title: "Healthcare",
+            lowLabel: "Basic",
+            highLabel: "Top-tier",
+            keyPath: \.healthcarePreference
+        ),
+    ]
+}
+
+// MARK: - Preference Sliders List
+
+/// A convenience view that renders all four preference sliders with staggered animations.
+/// Use this instead of manually listing PreferenceSliderCards in each view.
+struct PreferenceSlidersList: View {
+    @Binding var preferences: UserPreferences
+    var animated: Bool = true
+    @State private var appeared = false
+
+    var body: some View {
+        VStack(spacing: TeleportTheme.Spacing.md) {
+            ForEach(Array(PreferenceMetric.all.enumerated()), id: \.element.id) { index, metric in
+                PreferenceSliderCard(
+                    icon: metric.icon,
+                    title: metric.title,
+                    lowLabel: metric.lowLabel,
+                    highLabel: metric.highLabel,
+                    value: Binding(
+                        get: { preferences[keyPath: metric.keyPath] },
+                        set: { preferences[keyPath: metric.keyPath] = $0 }
+                    )
+                )
+                .opacity(animated ? (appeared ? 1 : 0) : 1)
+                .offset(y: animated ? (appeared ? 0 : 20) : 0)
+                .animation(
+                    animated ? .spring(response: 0.5).delay(Double(index) * 0.1) : nil,
+                    value: appeared
+                )
+            }
+        }
+        .onAppear {
+            if animated { appeared = true }
+        }
+    }
+}
+
+// MARK: - Preference Explainer Data
+
+/// Describes what a preference metric means and what low/high values indicate.
+struct PreferenceExplainer {
+    let summary: String
+    let lowExplainer: String
+    let highExplainer: String
+
+    /// Returns the explainer for a known preference metric, or nil for unknown ones.
+    static func forMetric(_ title: String) -> PreferenceExplainer? {
+        switch title {
+        case "Cost of Living":
+            return PreferenceExplainer(
+                summary: "How important affordability is in your ideal city — housing, food, transport, and everyday expenses.",
+                lowExplainer: "You're open to pricier cities if they deliver on other priorities.",
+                highExplainer: "You want a city where your money goes further — lower rent, cheaper groceries, and affordable day-to-day living."
+            )
+        case "Climate":
+            return PreferenceExplainer(
+                summary: "Your temperature and weather preference — from cool, four-season climates to year-round warmth.",
+                lowExplainer: "You prefer cooler temps, distinct seasons, or milder summers.",
+                highExplainer: "You want warm or hot weather most of the year — sunshine and mild winters."
+            )
+        case "Culture & Lifestyle":
+            return PreferenceExplainer(
+                summary: "How much nightlife, arts, dining, and social energy you want in your city.",
+                lowExplainer: "You prefer a quieter, more relaxed pace — fewer crowds, more nature.",
+                highExplainer: "You want a buzzing city with world-class restaurants, museums, music, and events."
+            )
+        case "Job Market":
+            return PreferenceExplainer(
+                summary: "How strong the local economy and career opportunities are — startups, tech, remote-friendliness.",
+                lowExplainer: "Career growth isn't your top priority — you may work remotely or are flexible.",
+                highExplainer: "You want a city with a thriving job market, high salaries, and strong industry presence."
+            )
+        case "Safety":
+            return PreferenceExplainer(
+                summary: "How important personal safety and low crime rates are in choosing your city.",
+                lowExplainer: "You're flexible on safety rankings — other factors matter more.",
+                highExplainer: "Safety is a top priority — you want a city known for low crime and feeling secure."
+            )
+        case "Commute & Transit":
+            return PreferenceExplainer(
+                summary: "How much you value public transit, walkability, and short commute times.",
+                lowExplainer: "You're fine with driving or don't mind longer commutes.",
+                highExplainer: "You want excellent public transit, bike-friendly streets, and a walkable city."
+            )
+        case "Healthcare":
+            return PreferenceExplainer(
+                summary: "How important access to quality healthcare, hospitals, and medical services is.",
+                lowExplainer: "Healthcare quality isn't a dealbreaker — you're healthy or have flexibility.",
+                highExplainer: "You want top-tier hospitals, specialists, and accessible medical care."
+            )
+        default:
+            return nil
+        }
+    }
+}
+
+// MARK: - Metric Explainer (for score cards throughout the app)
+
+/// Describes what a city score category measures.
+/// Used by MetricCard, ScoreCategoryRow, and ComparisonCard.
+struct MetricExplainer {
+    let summary: String
+
+    /// Returns the explainer for a known score category (using Teleport API category names).
+    /// Accepts both display names ("Climate", "Jobs") and API names ("Environmental Quality", "Economy").
+    static func forCategory(_ category: String) -> MetricExplainer? {
+        switch category {
+        case "Cost of Living":
+            return MetricExplainer(
+                summary: "Covers housing costs, groceries, transport, and everyday spending power relative to income."
+            )
+        case "Environmental Quality", "Climate":
+            return MetricExplainer(
+                summary: "Air quality, green spaces, weather conditions, and overall environmental livability."
+            )
+        case "Leisure & Culture", "Culture":
+            return MetricExplainer(
+                summary: "Nightlife, restaurants, art, music, museums, and social activity options."
+            )
+        case "Economy", "Jobs":
+            return MetricExplainer(
+                summary: "Employment opportunities, salary levels, startup ecosystem, and career growth potential."
+            )
+        case "Safety":
+            return MetricExplainer(
+                summary: "Crime rates, personal safety, political stability, and general feeling of security."
+            )
+        case "Commute", "Mobility":
+            return MetricExplainer(
+                summary: "Public transit quality, walkability, bike infrastructure, and average commute times."
+            )
+        case "Healthcare":
+            return MetricExplainer(
+                summary: "Hospital quality, access to specialists, insurance systems, and overall medical care."
+            )
+        case "Housing":
+            return MetricExplainer(
+                summary: "Rental prices, home affordability, living space, and housing market conditions."
+            )
+        case "Taxation":
+            return MetricExplainer(
+                summary: "Income tax rates, sales tax, and overall tax burden for residents."
+            )
+        case "Internet Access":
+            return MetricExplainer(
+                summary: "Broadband speed, reliability, coverage, and access to coworking and tech infrastructure."
+            )
+        case "Tolerance":
+            return MetricExplainer(
+                summary: "Social openness, diversity, LGBTQ+ rights, and inclusivity of the local community."
+            )
+        case "Outdoors":
+            return MetricExplainer(
+                summary: "Parks, hiking, beaches, nature access, and outdoor recreation opportunities."
+            )
+        case "Education":
+            return MetricExplainer(
+                summary: "School quality, university access, research output, and lifelong learning options."
+            )
+        case "Travel Connectivity":
+            return MetricExplainer(
+                summary: "Airport access, international flight routes, train networks, and ease of getting around the region."
+            )
+        case "Startups":
+            return MetricExplainer(
+                summary: "Density of startups, accelerator programs, coworking spaces, and entrepreneurial energy."
+            )
+        case "Venture Capital":
+            return MetricExplainer(
+                summary: "Availability of funding, investor networks, and access to growth capital."
+            )
+        case "Business Freedom":
+            return MetricExplainer(
+                summary: "Ease of starting a business, regulatory environment, and economic freedom."
+            )
+        default:
+            return nil
+        }
+    }
+}
+
 // MARK: - Preference Slider Card
 
 struct PreferenceSliderCard: View {
@@ -388,6 +684,12 @@ struct PreferenceSliderCard: View {
     let lowLabel: String
     let highLabel: String
     @Binding var value: Double
+
+    @State private var showExplainer = false
+
+    private var explainer: PreferenceExplainer? {
+        PreferenceExplainer.forMetric(title)
+    }
 
     var body: some View {
         CardView {
@@ -403,6 +705,67 @@ struct PreferenceSliderCard: View {
                     Text(title)
                         .font(TeleportTheme.Typography.cardTitle())
                         .foregroundStyle(TeleportTheme.Colors.textPrimary)
+
+                    Spacer()
+
+                    if explainer != nil {
+                        Button {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                showExplainer.toggle()
+                            }
+                        } label: {
+                            Image(systemName: showExplainer ? "xmark.circle.fill" : "info.circle")
+                                .font(.system(size: 18))
+                                .foregroundStyle(
+                                    showExplainer
+                                        ? TeleportTheme.Colors.textSecondary
+                                        : TeleportTheme.Colors.textTertiary
+                                )
+                                .contentTransition(.symbolEffect(.replace))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                // Expandable explainer
+                if showExplainer, let explainer {
+                    VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+                        Text(explainer.summary)
+                            .font(TeleportTheme.Typography.caption(13))
+                            .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        HStack(alignment: .top, spacing: TeleportTheme.Spacing.md) {
+                            VStack(alignment: .leading, spacing: TeleportTheme.Spacing.xs) {
+                                Text(lowLabel.uppercased())
+                                    .font(TeleportTheme.Typography.sectionHeader(10))
+                                    .foregroundStyle(TeleportTheme.Colors.accent)
+                                Text(explainer.lowExplainer)
+                                    .font(TeleportTheme.Typography.caption(12))
+                                    .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            VStack(alignment: .leading, spacing: TeleportTheme.Spacing.xs) {
+                                Text(highLabel.uppercased())
+                                    .font(TeleportTheme.Typography.sectionHeader(10))
+                                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                                Text(explainer.highExplainer)
+                                    .font(TeleportTheme.Typography.caption(12))
+                                    .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .padding(TeleportTheme.Spacing.sm)
+                    .background(TeleportTheme.Colors.surfaceElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.small))
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.95, anchor: .top)),
+                        removal: .opacity.combined(with: .scale(scale: 0.95, anchor: .top))
+                    ))
                 }
 
                 Slider(value: $value, in: 0...10, step: 0.5)

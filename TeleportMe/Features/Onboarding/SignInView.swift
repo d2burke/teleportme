@@ -7,7 +7,9 @@ struct SignInView: View {
     @State private var password = ""
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var screenEnteredAt = Date()
     @FocusState private var focusedField: Field?
+    private let analytics = AnalyticsService.shared
 
     enum Field: Hashable {
         case email, password
@@ -85,6 +87,8 @@ struct SignInView: View {
                         title: "Sign In",
                         isLoading: coordinator.authService.isLoading
                     ) {
+                        analytics.trackButtonTap("sign_in", screen: "sign_in")
+                        analytics.track("signin_attempted", screen: "sign_in")
                         Task { await signIn() }
                     }
                     .disabled(!isFormValid)
@@ -92,6 +96,7 @@ struct SignInView: View {
                     .padding(.horizontal, TeleportTheme.Spacing.lg)
 
                     Button {
+                        analytics.trackButtonTap("sign_up_link", screen: "sign_in")
                         dismiss()
                         coordinator.startOnboarding()
                     } label: {
@@ -110,6 +115,7 @@ struct SignInView: View {
 
             // Close button (top-left)
             Button {
+                analytics.trackButtonTap("dismiss", screen: "sign_in")
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
@@ -125,7 +131,13 @@ struct SignInView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("sign_in")
             focusedField = .email
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("sign_in", durationMs: ms, exitType: "advanced")
         }
     }
 
@@ -147,11 +159,20 @@ struct SignInView: View {
                 email: email,
                 password: password
             )
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.track("signin_succeeded", screen: "sign_in", properties: ["duration_ms": String(ms)])
             // Load cities in background after sign-in
             Task { await coordinator.cityService.fetchAllCities() }
             coordinator.goToMain()
             dismiss()
         } catch {
+            let errorType: String
+            let desc = error.localizedDescription.lowercased()
+            if desc.contains("invalid") || desc.contains("credentials") { errorType = "invalid_credentials" }
+            else if desc.contains("network") || desc.contains("connection") { errorType = "network" }
+            else if desc.contains("rate") { errorType = "rate_limited" }
+            else { errorType = "unknown" }
+            analytics.track("signin_failed", screen: "sign_in", properties: ["error_type": errorType])
             errorMessage = error.localizedDescription
             showError = true
         }

@@ -2,8 +2,9 @@ import SwiftUI
 
 struct PreferencesView: View {
     @Environment(AppCoordinator.self) private var coordinator
-    @State private var appeared = false
     @State private var isSaving = false
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     var body: some View {
         @Bindable var coord = coordinator
@@ -16,70 +17,47 @@ struct PreferencesView: View {
                         .font(TeleportTheme.Typography.title(24))
                         .foregroundStyle(TeleportTheme.Colors.textPrimary)
 
-                    Text("Prioritize the factors that matter most for your next home.")
+                    Text("Prioritize the factors that matter most for your next home. Tap \(Image(systemName: "info.circle")) to learn more.")
                         .font(TeleportTheme.Typography.body(14))
                         .foregroundStyle(TeleportTheme.Colors.textSecondary)
                 }
                 .padding(.horizontal, TeleportTheme.Spacing.lg)
 
                 // Preference sliders
-                VStack(spacing: TeleportTheme.Spacing.md) {
-                    PreferenceSliderCard(
-                        icon: "banknote",
-                        title: "Cost of Living",
-                        lowLabel: "Lower",
-                        highLabel: "Higher",
-                        value: $coord.preferences.costPreference
-                    )
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(.spring(response: 0.5).delay(0.0), value: appeared)
-
-                    PreferenceSliderCard(
-                        icon: "thermometer.sun",
-                        title: "Climate",
-                        lowLabel: "Colder",
-                        highLabel: "Warmer",
-                        value: $coord.preferences.climatePreference
-                    )
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(.spring(response: 0.5).delay(0.1), value: appeared)
-
-                    PreferenceSliderCard(
-                        icon: "theatermasks",
-                        title: "Culture & Lifestyle",
-                        lowLabel: "Chill",
-                        highLabel: "Vibrant",
-                        value: $coord.preferences.culturePreference
-                    )
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(.spring(response: 0.5).delay(0.2), value: appeared)
-
-                    PreferenceSliderCard(
-                        icon: "briefcase",
-                        title: "Job Market",
-                        lowLabel: "Niche",
-                        highLabel: "Growth",
-                        value: $coord.preferences.jobMarketPreference
-                    )
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(.spring(response: 0.5).delay(0.3), value: appeared)
-                }
-                .padding(.horizontal, TeleportTheme.Spacing.lg)
-                .allowsHitTesting(!isSaving)
-                .opacity(isSaving ? 0.6 : 1.0)
+                PreferenceSlidersList(preferences: $coord.preferences)
+                    .padding(.horizontal, TeleportTheme.Spacing.lg)
+                    .allowsHitTesting(!isSaving)
+                    .opacity(isSaving ? 0.6 : 1.0)
             }
             .padding(.bottom, 100) // Space for button
         }
         .background(TeleportTheme.Colors.background)
         .navigationTitle("Personalize")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("preferences")
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("preferences", durationMs: ms, exitType: "advanced")
+        }
         .overlay(alignment: .bottom) {
             // Fixed CTA at bottom
             TeleportButton(title: "Find My Cities", icon: "arrow.right", isLoading: isSaving) {
+                analytics.trackButtonTap("continue", screen: "preferences")
+                let prefs = coordinator.preferences
+                analytics.track("onboarding_step_completed", screen: "preferences", properties: [
+                    "step": "preferences",
+                    "duration_ms": String(Int(Date().timeIntervalSince(screenEnteredAt) * 1000)),
+                    "cost": String(format: "%.1f", prefs.costPreference),
+                    "climate": String(format: "%.1f", prefs.climatePreference),
+                    "culture": String(format: "%.1f", prefs.culturePreference),
+                    "jobs": String(format: "%.1f", prefs.jobMarketPreference),
+                    "safety": String(format: "%.1f", prefs.safetyPreference),
+                    "commute": String(format: "%.1f", prefs.commutePreference),
+                    "healthcare": String(format: "%.1f", prefs.healthcarePreference),
+                ])
                 isSaving = true
                 coordinator.advanceOnboarding(from: .preferences)
             }
@@ -93,9 +71,6 @@ struct PreferencesView: View {
                     endPoint: .center
                 )
             )
-        }
-        .onAppear {
-            appeared = true
         }
     }
 }

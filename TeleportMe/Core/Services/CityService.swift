@@ -147,6 +147,14 @@ final class CityService {
         }
     }
 
+    // MARK: - Cached Score Lookup
+
+    /// Returns a cached score for a given city and category, or nil if not yet fetched.
+    /// Used by CityDetailView for pivot-city comparisons without triggering network calls.
+    func cachedScore(cityId: String, category: String) -> Double? {
+        scoreCache[cityId]?[category]
+    }
+
     // MARK: - Get Multiple Cities with Scores
 
     func getCitiesWithScores(cityIds: [String]) async -> [CityWithScores] {

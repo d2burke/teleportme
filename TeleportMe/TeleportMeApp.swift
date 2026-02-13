@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct TeleportMeApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var appCoordinator: AppCoordinator
 
     init() {
@@ -87,6 +88,18 @@ struct TeleportMeApp: App {
                 .onOpenURL { url in
                     appCoordinator.handleDeepLink(url)
                 }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active:
+                // Drain any events persisted from a previous session
+                appCoordinator.analytics.drainPersistedEvents()
+            case .background:
+                // Flush + persist before going to background
+                appCoordinator.analytics.handleBackgroundTransition()
+            default:
+                break
+            }
         }
     }
 }

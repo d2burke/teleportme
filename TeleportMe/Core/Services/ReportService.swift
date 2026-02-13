@@ -4,7 +4,9 @@ import Supabase
 // MARK: - Edge Function Request Body
 
 private struct GenerateReportRequest: Encodable {
-    let currentCityId: String
+    let currentCityId: String?
+    let startType: String
+    let title: String?
     let preferences: Preferences
 
     struct Preferences: Encodable {
@@ -12,16 +14,21 @@ private struct GenerateReportRequest: Encodable {
         let climate: Double
         let culture: Double
         let jobMarket: Double
+        let safety: Double
+        let commute: Double
+        let healthcare: Double
 
         enum CodingKeys: String, CodingKey {
-            case cost, climate, culture
+            case cost, climate, culture, safety, commute, healthcare
             case jobMarket = "job_market"
         }
     }
 
     enum CodingKeys: String, CodingKey {
-        case currentCityId = "current_city_id"
         case preferences
+        case currentCityId = "current_city_id"
+        case startType = "start_type"
+        case title
     }
 }
 
@@ -41,7 +48,9 @@ final class ReportService {
     // MARK: - Generate Report (calls Edge Function)
 
     func generateReport(
-        currentCityId: String,
+        currentCityId: String?,
+        startType: StartType = .cityILove,
+        title: String? = nil,
         preferences: UserPreferences,
         userId: String? = nil
     ) async throws -> GenerateReportResponse {
@@ -52,11 +61,16 @@ final class ReportService {
         do {
             let body = GenerateReportRequest(
                 currentCityId: currentCityId,
+                startType: startType.rawValue,
+                title: title,
                 preferences: .init(
                     cost: preferences.costPreference,
                     climate: preferences.climatePreference,
                     culture: preferences.culturePreference,
-                    jobMarket: preferences.jobMarketPreference
+                    jobMarket: preferences.jobMarketPreference,
+                    safety: preferences.safetyPreference,
+                    commute: preferences.commutePreference,
+                    healthcare: preferences.healthcarePreference
                 )
             )
 

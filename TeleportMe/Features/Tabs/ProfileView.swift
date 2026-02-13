@@ -4,13 +4,17 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(AppCoordinator.self) private var coordinator
-    @State private var pastReports: [CityReport] = []
-    @State private var isLoadingReports = false
-    @State private var reportsError: String?
-    @State private var selectedReport: CityReport?
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
+
+    @State private var showEditProfile = false
 
     private var profile: UserProfile? {
         coordinator.authService.currentProfile
+    }
+
+    private var explorations: [Exploration] {
+        coordinator.explorationService.explorations
     }
 
     private var initials: String {
@@ -32,7 +36,7 @@ struct ProfileView: View {
                     VStack(spacing: TeleportTheme.Spacing.lg) {
                         headerSection
                         statsSection
-                        recentReportsSection
+                        recentExplorationsSection
                         settingsSection
                         signOutSection
                         versionFooter
@@ -44,12 +48,20 @@ struct ProfileView: View {
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .navigationDestination(item: $selectedReport) { report in
-                ReportDetailView(report: report)
+            .navigationDestination(for: Exploration.self) { exploration in
+                ExplorationDetailView(exploration: exploration)
             }
-        }
-        .task {
-            await loadReports()
+            .onAppear {
+                screenEnteredAt = Date()
+                analytics.trackScreenView("profile")
+            }
+            .onDisappear {
+                let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+                analytics.trackScreenExit("profile", durationMs: ms, exitType: "tab_switch")
+            }
+            .sheet(isPresented: $showEditProfile) {
+                EditProfileView()
+            }
         }
     }
 
@@ -90,21 +102,26 @@ struct ProfileView: View {
             HStack(spacing: TeleportTheme.Spacing.sm) {
                 statCard(
                     value: "\(coordinator.savedCitiesService.savedCities.count)",
-                    label: "Cities Explored",
+                    label: "Saved Cities",
+                    icon: "heart"
+                )
+                statCard(
+                    value: "\(explorations.count)",
+                    label: "Explorations",
+                    icon: "safari"
+                )
+                statCard(
+                    value: "\(totalCitiesExplored)",
+                    label: "Cities Found",
                     icon: "globe"
-                )
-                statCard(
-                    value: "\(pastReports.count)",
-                    label: "Reports Generated",
-                    icon: "doc.text"
-                )
-                statCard(
-                    value: "\(coordinator.reportService.currentReport?.matches.count ?? 0)",
-                    label: "Matches Found",
-                    icon: "heart.circle"
                 )
             }
         }
+    }
+
+    private var totalCitiesExplored: Int {
+        let allCityIds = Set(explorations.flatMap { $0.results.map(\.cityId) })
+        return allCityIds.count
     }
 
     private func statCard(value: String, label: String, icon: String) -> some View {
@@ -129,64 +146,24 @@ struct ProfileView: View {
         }
     }
 
-    // MARK: - Recent Reports Section
+    // MARK: - Recent Explorations Section
 
-    private var recentReportsSection: some View {
+    private var recentExplorationsSection: some View {
         VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
-            SectionHeader(title: "Recent Reports")
+            SectionHeader(title: "Your Explorations")
 
-            if isLoadingReports {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                        .tint(TeleportTheme.Colors.accent)
-                    Spacer()
-                }
-                .padding(.vertical, TeleportTheme.Spacing.lg)
-            } else if let error = reportsError {
+            if explorations.isEmpty {
                 CardView {
                     VStack(spacing: TeleportTheme.Spacing.sm) {
-                        Image(systemName: "wifi.exclamationmark")
-                            .font(.system(size: 24))
-                            .foregroundStyle(.red.opacity(0.6))
-
-                        Text("Couldn't load reports")
-                            .font(TeleportTheme.Typography.cardTitle())
-                            .foregroundStyle(TeleportTheme.Colors.textPrimary)
-
-                        Text(error)
-                            .font(TeleportTheme.Typography.caption())
-                            .foregroundStyle(TeleportTheme.Colors.textSecondary)
-                            .multilineTextAlignment(.center)
-
-                        Button {
-                            Task { await loadReports() }
-                        } label: {
-                            Text("Retry")
-                                .font(TeleportTheme.Typography.cardTitle(14))
-                                .foregroundStyle(TeleportTheme.Colors.background)
-                                .padding(.horizontal, TeleportTheme.Spacing.lg)
-                                .padding(.vertical, TeleportTheme.Spacing.sm)
-                                .background(TeleportTheme.Colors.accent)
-                                .clipShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, TeleportTheme.Spacing.sm)
-                }
-            } else if pastReports.isEmpty {
-                CardView {
-                    VStack(spacing: TeleportTheme.Spacing.sm) {
-                        Image(systemName: "doc.text.magnifyingglass")
+                        Image(systemName: "safari")
                             .font(.system(size: 32))
                             .foregroundStyle(TeleportTheme.Colors.textTertiary)
 
-                        Text("No reports yet")
+                        Text("No explorations yet")
                             .font(TeleportTheme.Typography.cardTitle())
                             .foregroundStyle(TeleportTheme.Colors.textPrimary)
 
-                        Text("Generate your first city report to see it here")
+                        Text("Create your first exploration to see it here")
                             .font(TeleportTheme.Typography.caption())
                             .foregroundStyle(TeleportTheme.Colors.textSecondary)
                             .multilineTextAlignment(.center)
@@ -196,11 +173,9 @@ struct ProfileView: View {
                 }
             } else {
                 VStack(spacing: TeleportTheme.Spacing.sm) {
-                    ForEach(pastReports) { report in
-                        Button {
-                            selectedReport = report
-                        } label: {
-                            reportRow(report)
+                    ForEach(explorations.prefix(5)) { exploration in
+                        NavigationLink(value: exploration) {
+                            explorationRow(exploration)
                         }
                         .buttonStyle(.plain)
                     }
@@ -209,32 +184,33 @@ struct ProfileView: View {
         }
     }
 
-    private func reportRow(_ report: CityReport) -> some View {
+    private func explorationRow(_ exploration: Exploration) -> some View {
         CardView {
             HStack(spacing: TeleportTheme.Spacing.md) {
-                // Date icon
-                Image(systemName: "calendar")
+                // Start type icon
+                Image(systemName: startTypeIcon(exploration.startType))
                     .font(.system(size: 18))
                     .foregroundStyle(TeleportTheme.Colors.accent)
                     .frame(width: 36, height: 36)
                     .background(TeleportTheme.Colors.surfaceElevated)
                     .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.small))
 
-                // Report info
+                // Exploration info
                 VStack(alignment: .leading, spacing: TeleportTheme.Spacing.xs) {
-                    Text(formattedDate(report.createdAt))
+                    Text(exploration.title)
                         .font(TeleportTheme.Typography.cardTitle())
                         .foregroundStyle(TeleportTheme.Colors.textPrimary)
+                        .lineLimit(1)
 
                     HStack(spacing: TeleportTheme.Spacing.md) {
-                        Label("\(report.results.count) matches", systemImage: "heart.circle")
+                        Label("\(exploration.results.count) cities", systemImage: "globe")
                             .font(TeleportTheme.Typography.caption())
                             .foregroundStyle(TeleportTheme.Colors.textSecondary)
 
-                        if let cityId = report.currentCityId {
-                            Label(cityName(for: cityId), systemImage: "mappin.circle")
+                        if let date = exploration.createdAt {
+                            Text(date, style: .date)
                                 .font(TeleportTheme.Typography.caption())
-                                .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                                .foregroundStyle(TeleportTheme.Colors.textTertiary)
                         }
                     }
                 }
@@ -248,6 +224,14 @@ struct ProfileView: View {
         }
     }
 
+    private func startTypeIcon(_ startType: StartType) -> String {
+        switch startType {
+        case .cityILove: return "heart.fill"
+        case .vibes: return "waveform"
+        case .myWords: return "text.quote"
+        }
+    }
+
     // MARK: - Settings Section
 
     private var settingsSection: some View {
@@ -255,9 +239,23 @@ struct ProfileView: View {
             SectionHeader(title: "Settings")
 
             VStack(spacing: TeleportTheme.Spacing.sm) {
-                settingsRow(icon: "pencil.circle", title: "Edit Profile", comingSoon: true)
+                Button {
+                    analytics.trackButtonTap("edit_profile", screen: "profile")
+                    showEditProfile = true
+                } label: {
+                    settingsRow(icon: "pencil.circle", title: "Edit Profile")
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    coordinator.selectedTab = .saved
+                } label: {
+                    settingsRow(icon: "heart.circle", title: "Saved Cities")
+                }
+                .buttonStyle(.plain)
+
                 settingsRow(icon: "bell", title: "Notifications", comingSoon: true)
-                settingsRow(icon: "info.circle", title: "About TeleportMe", comingSoon: false, detail: "v1.0")
+                settingsRow(icon: "info.circle", title: "About TeleportMe", detail: "v1.0")
             }
         }
     }
@@ -290,6 +288,10 @@ struct ProfileView: View {
                     Text(detail)
                         .font(TeleportTheme.Typography.caption())
                         .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12))
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
                 }
             }
         }
@@ -299,6 +301,11 @@ struct ProfileView: View {
 
     private var signOutSection: some View {
         TeleportButton(title: "Sign Out", style: .secondary) {
+            analytics.trackButtonTap("sign_out", screen: "profile")
+            analytics.track("sign_out_completed", screen: "profile", properties: [
+                "explorations_count": String(explorations.count),
+                "saved_count": String(coordinator.savedCitiesService.savedCities.count)
+            ])
             Task {
                 await coordinator.signOut()
             }
@@ -315,32 +322,6 @@ struct ProfileView: View {
             .frame(maxWidth: .infinity)
             .padding(.top, TeleportTheme.Spacing.sm)
             .padding(.bottom, TeleportTheme.Spacing.md)
-    }
-
-    // MARK: - Helpers
-
-    private func loadReports() async {
-        guard let userId = coordinator.authService.currentProfile?.id else { return }
-        isLoadingReports = true
-        reportsError = nil
-        pastReports = await coordinator.reportService.loadReports(userId: userId)
-        // If we got no reports and the service has an error, surface it
-        if pastReports.isEmpty, let serviceError = coordinator.reportService.error {
-            reportsError = serviceError
-        }
-        isLoadingReports = false
-    }
-
-    private func formattedDate(_ date: Date?) -> String {
-        guard let date else { return "Unknown date" }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
-    }
-
-    private func cityName(for cityId: String) -> String {
-        coordinator.cityService.allCities.first { $0.id == cityId }?.name ?? cityId
     }
 }
 

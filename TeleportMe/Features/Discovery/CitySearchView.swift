@@ -5,6 +5,8 @@ struct CitySearchView: View {
     @State private var searchText = ""
     @State private var searchResults: [City] = []
     @State private var isSearching = false
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     var body: some View {
         ScrollView {
@@ -77,8 +79,14 @@ struct CitySearchView: View {
                 // Search results or trending
                 if !searchResults.isEmpty {
                     VStack(spacing: 0) {
-                        ForEach(searchResults) { city in
+                        ForEach(Array(searchResults.enumerated()), id: \.1.id) { index, city in
                             CitySearchRow(city: city) {
+                                analytics.trackButtonTap("search_result", screen: "city_search", properties: [
+                                    "city_id": city.id, "rank": String(index + 1)
+                                ])
+                                analytics.track("city_selected", screen: "city_search", properties: [
+                                    "city_id": city.id, "city_name": city.name, "source": "search"
+                                ])
                                 Task {
                                     await coordinator.selectCity(city.id)
                                     coordinator.advanceOnboarding(from: .citySearch)
@@ -100,6 +108,10 @@ struct CitySearchView: View {
                             HStack(spacing: TeleportTheme.Spacing.sm) {
                                 ForEach(coordinator.cityService.trendingCities) { city in
                                     TrendingChip(title: city.name) {
+                                        analytics.trackButtonTap("trending_city", screen: "city_search", properties: ["city_id": city.id])
+                                        analytics.track("city_selected", screen: "city_search", properties: [
+                                            "city_id": city.id, "city_name": city.name, "source": "trending"
+                                        ])
                                         Task {
                                             await coordinator.selectCity(city.id)
                                             coordinator.advanceOnboarding(from: .citySearch)
@@ -123,6 +135,14 @@ struct CitySearchView: View {
         }
         .background(TeleportTheme.Colors.background)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("city_search")
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("city_search", durationMs: ms, exitType: "advanced")
+        }
     }
 
     private func performSearch(query: String) async {
@@ -133,6 +153,10 @@ struct CitySearchView: View {
         isSearching = true
         searchResults = await coordinator.cityService.searchCities(query: query)
         isSearching = false
+        analytics.track("search_performed", screen: "city_search", properties: [
+            "query_length": String(query.count),
+            "result_count": String(searchResults.count)
+        ])
     }
 }
 
@@ -173,7 +197,8 @@ struct CitySearchRow: View {
                     .font(.caption)
                     .foregroundStyle(TeleportTheme.Colors.textTertiary)
             }
-            .padding(.vertical, TeleportTheme.Spacing.sm)
+            .padding(.vertical, TeleportTheme.Spacing.md)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

@@ -9,11 +9,11 @@
 
 ## 1. Executive Summary
 
-TeleportMe is an iOS-native city relocation discovery app. Users describe their lifestyle preferences, and the system recommends cities worldwide that match their priorities across cost, climate, culture, and job market dimensions. The app combines algorithmic scoring with GPT-4o-mini refinement to produce personalized city matches with AI-generated insights.
+TeleportMe is an iOS-native city discovery app. Users create named "Explorations" — describing their lifestyle preferences — and the system recommends cities worldwide that match their priorities across cost, climate, culture, and job market dimensions. The app combines algorithmic scoring with GPT-4o-mini refinement to produce personalized city matches with AI-generated insights.
 
-**Architecture class:** Client-heavy SwiftUI app with Supabase BaaS (Backend-as-a-Service) and a single Edge Function for AI-powered report generation.
+**Architecture class:** Client-heavy SwiftUI app with Supabase BaaS (Backend-as-a-Service), a single Edge Function for AI-powered exploration generation, and an AppClip for lightweight onboarding.
 
-**Current state:** MVP with 55 seeded cities, 17 score categories per city, onboarding flow, report generation, saved cities, and offline-first caching.
+**Current state:** MVP with 55 seeded cities, 17 score categories per city, onboarding flow, multi-exploration support, iOS 26 search tab, saved cities, profile editing, interactive map, AppClip, and offline-first caching.
 
 ---
 
@@ -30,13 +30,13 @@ TeleportMe is an iOS-native city relocation discovery app. Users describe their 
 |  +----------------------------------------------------+  |
 |  |                    Coordination                     |  |
 |  |  AppCoordinator (@Observable)                       |  |
-|  |  - Navigation state (screen + path)                 |  |
+|  |  - Navigation state (screen + path + tab)           |  |
 |  |  - Onboarding state (name, city, prefs)             |  |
 |  |  - Service orchestration                            |  |
 |  +----------------------------------------------------+  |
 |  |                    Service Layer                     |  |
-|  |  AuthService | CityService | ReportService          |  |
-|  |  SavedCitiesService                                 |  |
+|  |  AuthService | CityService | ExplorationService     |  |
+|  |  ReportService (legacy) | SavedCitiesService        |  |
 |  |  (All @Observable, all use withTimeout())           |  |
 |  +----------------------------------------------------+  |
 |  |                    Persistence                      |  |
@@ -56,7 +56,7 @@ TeleportMe is an iOS-native city relocation discovery app. Users describe their 
 |                        +-----------------------------+   |
 |  +------------------+  +-----------------------------+   |
 |  |  Edge Functions  |  |   PostgreSQL 17              |   |
-|  |  (Deno runtime)  |  |   8 tables, RLS policies    |   |
+|  |  (Deno runtime)  |  |   9 tables, RLS policies    |   |
 |  |  generate-report |  |   pg_trgm fuzzy search      |   |
 |  +------------------+  +-----------------------------+   |
 |                                    |                      |
@@ -88,7 +88,7 @@ TeleportMe is an iOS-native city relocation discovery app. Users describe their 
 
 ### 3.2 Layer Architecture
 
-**Presentation Layer** (12 feature views + 11 reusable components)
+**Presentation Layer** (20+ feature views + 11 reusable components)
 
 All views are pure SwiftUI. No UIKit wrapping except for `UINavigationBarAppearance` configuration in the app entry point. Views access shared state through `@Environment(AppCoordinator.self)` and create local bindings with `@Bindable` when two-way binding is needed.
 
@@ -96,15 +96,21 @@ All views are pure SwiftUI. No UIKit wrapping except for `UINavigationBarAppeara
 
 Single `@Observable` coordinator manages:
 - Screen routing (`AppScreen` enum: splash, onboarding, main)
+- Tab selection (`AppTab` enum: discover, saved, map, profile, search)
 - Onboarding navigation via `NavigationPath` with `OnboardingStep` enum (8 steps)
 - All shared onboarding state (name, selected city, preferences)
-- Service lifecycle and orchestration
+- New Exploration modal presentation (`showNewExplorationModal`)
+- Search text binding for iOS 26 search tab
+- Service lifecycle and orchestration (5 services)
 - Cache restoration on app relaunch
 - Sign-out with full state cleanup
 
-**Service Layer** (4 services + SupabaseManager)
+**Service Layer** (5 services + SupabaseManager)
 
-Each service encapsulates a domain: authentication, cities, reports, saved cities. All services are `@Observable` singletons owned by the coordinator. Every network call is wrapped with `withTimeout()` for deadline-based cancellation using structured concurrency (`withThrowingTaskGroup`).
+Each service encapsulates a domain: authentication, cities, explorations, reports (legacy), saved cities. All services are `@Observable` singletons owned by the coordinator. Every network call is wrapped with `withTimeout()` for deadline-based cancellation using structured concurrency (`withThrowingTaskGroup`).
+
+- **ExplorationService** (new, primary) — create/load/rename/delete explorations; cache-then-network
+- **ReportService** (legacy, backward compat) — holds `currentReport` for views not yet fully migrated
 
 **Persistence Layer** (CacheManager)
 
@@ -121,22 +127,23 @@ TeleportMe/
   TeleportMeApp.swift                          # App entry, nav bar config, DEBUG_SCREEN
   Core/
     Navigation/
-      AppCoordinator.swift                     # Central state + navigation coordinator
+      AppCoordinator.swift                     # Central state + navigation + tab coordinator
       RootView.swift                           # Root router, OnboardingFlowView, MainTabView
     Models/
-      Models.swift                             # All Codable data models (14 types)
+      Models.swift                             # All Codable data models (15+ types incl Exploration)
     Services/
       SupabaseManager.swift                    # Supabase client singleton
       AuthService.swift                        # Sign up, sign in, sign out, profile CRUD
       CityService.swift                        # City fetching, search, scores (cached)
-      ReportService.swift                      # Report generation + past reports (cached)
+      ExplorationService.swift                 # Create/load/rename/delete explorations (cached)
+      ReportService.swift                      # Legacy report compat (cached)
       SavedCitiesService.swift                 # Save/unsave with optimistic updates (cached)
     Utilities/
       CacheManager.swift                       # Disk cache with TTL + per-user scoping
       AsyncHelpers.swift                       # withTimeout(), Collection[safe:]
     Design/
       TeleportTheme.swift                      # Colors, typography, spacing, radii
-      Components.swift                         # 8 reusable components
+      Components.swift                         # 9 reusable components
       PreviewHelpers.swift                     # Mock data + PreviewContainer
     Debug/
       DevModeView.swift                        # DEBUG-only dev tools panel
@@ -155,11 +162,34 @@ TeleportMe/
       GeneratingView.swift                     # Loading animation during report gen
       RecommendationsView.swift                # Match cards + comparison metrics
       ReportDetailView.swift                   # Individual report detail
+    NewExploration/
+      NewExplorationFlow.swift                 # Modal container + step enum + local @State
+      ExplorationNameStepView.swift            # Title input
+      ExplorationMethodStepView.swift          # Start type picker (cityILove active)
+      ExplorationCityPickerStepView.swift      # City search with Skip option
+      ExplorationPreferencesStepView.swift     # 4 preference sliders (local state)
+      ExplorationGeneratingStepView.swift      # Loading animation + generation call
+      ExplorationResultsStepView.swift         # Results display with match cards
+    Exploration/
+      ExplorationDetailView.swift              # Exploration detail with rename/delete
+    Profile/
+      EditProfileView.swift                    # Edit name, home city, default preferences
     Tabs/
-      DiscoverView.swift                       # Browse/search tab
+      DiscoverView.swift                       # Explorations + trending cities
       SavedView.swift                          # Saved cities tab
-      MapView.swift                            # Map visualization tab (placeholder)
-      ProfileView.swift                        # User profile + settings + sign out
+      SearchView.swift                         # iOS 26 search tab (all cities, trending, search)
+      MapView.swift                            # Interactive map with city pins + filters
+      ProfileView.swift                        # User profile + stats + settings + sign out
+
+Clip/                                          # AppClip target (Xcode-managed)
+  ClipApp.swift                                # @main entry point
+  ClipCoordinator.swift                        # Minimal coordinator (cityService + explorationService)
+  ClipRootView.swift                           # Screen router (preferences → generating → results)
+  ClipPreferencesView.swift                    # Quick 4-slider preference input
+  ClipGeneratingView.swift                     # Loading animation + generation call
+  ClipResultsView.swift                        # 3 match cards + "Get Full App" StoreKit overlay
+  Clip.entitlements                            # Associated Domains for AppClip
+  Info.plist                                   # NSAppClip configuration
 ```
 
 ### 3.4 Navigation Model
@@ -180,10 +210,24 @@ The `generating -> recommendations` transition is a **replace** (removeLast + ap
 
 **Main tabs (TabView):**
 ```
-Discover | Saved | Map | Profile
+Discover | Saved | Map | Profile | 🔍 Search (iOS 26 role: .search)
 ```
 
-Each tab manages its own internal navigation. ProfileView uses a local `NavigationStack` for report detail drill-down.
+The search tab uses `Tab(role: .search)` with a `value: .search` binding, which renders a visually separated search button on the right side of the iOS 26 liquid glass tab bar. Tapping it morphs into an inline search field.
+
+Each tab manages its own internal NavigationStack. New Exploration modal is presented as a sheet from MainTabView.
+
+**New Exploration modal (NavigationStack in sheet):**
+```
+ExplorationName → ExplorationMethod → ExplorationCityPicker → ExplorationPreferences → ExplorationGenerating → ExplorationResults
+```
+
+All modal state is `@State` local to the flow container — NOT on AppCoordinator. This eliminates stale state bugs.
+
+**AppClip flow:**
+```
+ClipPreferences → ClipGenerating → ClipResults (+ StoreKit App Store overlay)
+```
 
 ### 3.5 State Management Pattern
 
@@ -192,6 +236,11 @@ Each tab manages its own internal navigation. ProfileView uses a local `Navigati
 @Observable final class AppCoordinator {
     let authService = AuthService()
     let cityService = CityService()
+    let explorationService = ExplorationService()
+    let reportService = ReportService()       // legacy compat
+    let savedCitiesService = SavedCitiesService()
+    var showNewExplorationModal = false
+    var searchText: String = ""
     // ... injected into environment at app root
 }
 
@@ -212,8 +261,9 @@ struct SomeView: View {
 | `cities` | Global | 24h | `fetchAllCities()` network success |
 | `cityScores` | Global | 24h | `getCityWithScores()` network success |
 | `savedCities(userId)` | Per-user | 5min | Every save/unsave (optimistic + confirmed) |
-| `currentReport(userId)` | Per-user | None | `generateReport()` success |
-| `pastReports(userId)` | Per-user | 1h | `loadReports()` network success |
+| `explorations(userId)` | Per-user | 1h | `loadExplorations()` / `generateExploration()` success |
+| `currentReport(userId)` | Per-user | None | `generateReport()` success (legacy) |
+| `pastReports(userId)` | Per-user | 1h | `loadReports()` network success (legacy) |
 | `preferences(userId)` | Per-user | None | `savePreferences()` |
 | `selectedCity(userId)` | Per-user | None | `selectCity()` |
 
@@ -281,7 +331,7 @@ Every service follows a consistent pattern:
 
 ### 4.2 Database Schema
 
-**8 tables across 3 categories:**
+**9 tables across 3 categories:**
 
 **Reference data (public read, admin write):**
 
@@ -339,13 +389,28 @@ user_preferences (
     dealbreakers text[]
 )
 
-city_reports (
+city_reports (                     -- LEGACY (kept for backward compat)
     id uuid PRIMARY KEY,
     user_id uuid REFERENCES auth.users(id),
     current_city_id text REFERENCES cities(id),
     preferences jsonb,             -- snapshot of user prefs at generation time
     results jsonb,                 -- array of CityMatch objects
     ai_summary text
+)
+
+explorations (                     -- NEW: primary exploration storage
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    title text NOT NULL DEFAULT 'Untitled Exploration',
+    start_type text NOT NULL DEFAULT 'city_i_love',
+    baseline_city_id text REFERENCES cities(id),  -- NULL for vibes/words
+    preferences jsonb NOT NULL DEFAULT '{}',
+    results jsonb NOT NULL DEFAULT '[]',
+    ai_summary text,
+    vibe_tags uuid[] DEFAULT '{}',    -- future: vibes start type
+    free_text text,                    -- future: my_words start type
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
 )
 
 saved_cities (
@@ -377,6 +442,7 @@ All tables have RLS enabled. Policy summary:
 | user_preferences | Own only | Own only | Own only | Own only |
 | city_reports | Own only | Own only | - | - |
 | saved_cities | Own only | Own only | - | Own only |
+| explorations | Own only | Own only | Own only | Own only |
 | engagement_events | Own only | Own only | - | - |
 
 ### 4.4 Database Functions
@@ -401,6 +467,8 @@ city_scores_city_id_idx    ON city_scores (city_id)
 user_preferences_user_id   ON user_preferences (user_id)
 city_reports_user_id_idx   ON city_reports (user_id)
 city_reports_created_at    ON city_reports (created_at DESC)
+explorations_user_id_idx   ON explorations (user_id)
+explorations_created_at    ON explorations (created_at DESC)
 saved_cities_user_id_idx   ON saved_cities (user_id)
 engagement_events_*        ON engagement_events (user_id, event_type, created_at DESC)
 ```
@@ -417,7 +485,9 @@ engagement_events_*        ON engagement_events (user_id, event_type, created_at
 **Request:**
 ```json
 {
-    "current_city_id": "san-francisco",
+    "current_city_id": "san-francisco",   // optional — null for vibes/words start types
+    "start_type": "city_i_love",          // "city_i_love" | "vibes" | "my_words"
+    "title": "My Adventure Trip",         // exploration title
     "preferences": {
         "cost": 7.0,
         "climate": 6.0,
@@ -429,8 +499,8 @@ engagement_events_*        ON engagement_events (user_id, event_type, created_at
 
 **Algorithm:**
 1. Authenticate user from JWT in Authorization header
-2. Fetch current city + its 17 scores
-3. Fetch all candidate cities (excluding current) + all scores
+2. If `current_city_id` provided: fetch current city + its 17 scores; otherwise skip
+3. Fetch all candidate cities (excluding current if provided) + all scores
 4. **Algorithmic scoring** for each candidate:
    - Weighted sum: `(pref_weight/10) * (city_score/10) * 100` for 4 primary categories
    - Bonus: 5 additional categories (Safety, Healthcare, Commute, Internet, Tolerance) at 10% weight each
@@ -440,14 +510,15 @@ engagement_events_*        ON engagement_events (user_id, event_type, created_at
 7. Parse GPT JSON response; validate city IDs against candidate pool
 8. **Fallback:** If GPT parse fails, use top 4 algorithmic picks with generic insights
 9. Build comparison metrics for 5 display categories (cost, climate, culture, economy, commute)
-10. Save report to `city_reports` table (if authenticated)
+10. Save to `explorations` table AND `city_reports` (legacy) table (if authenticated)
 11. Return structured response
 
 **Response:**
 ```json
 {
     "report_id": "uuid",
-    "current_city": {
+    "exploration_id": "uuid",
+    "current_city": {                   // null when no baseline city
         "id": "san-francisco",
         "name": "San Francisco",
         "scores": { "Cost of Living": 2.5, ... }
@@ -509,6 +580,7 @@ AppCoordinator.checkExistingSession()
   |     +-> CacheManager.load(preferences)    -> coordinator.preferences
   |     +-> CacheManager.load(currentReport)  -> reportService.currentReport
   |     +-> CacheManager.load(selectedCity)   -> coordinator.selectedCity
+  |     +-> CacheManager.load(explorations)   -> explorationService.explorations
   |
   +-> CityService.fetchAllCities()
   |     +-> CacheManager.load(cities)         -> allCities (instant)
@@ -518,7 +590,7 @@ AppCoordinator.checkExistingSession()
         +-> MainTabView displays with cached data
 ```
 
-### 5.2 Report Generation
+### 5.2 Exploration Generation (Onboarding)
 
 ```
 User taps "Find My Cities" on PreferencesView
@@ -532,11 +604,11 @@ AppCoordinator.advanceOnboarding(from: .preferences)
   |
   v
 GeneratingView.onAppear
-  +-> AppCoordinator.generateReport()
-  |     +-> ReportService.generateReport(cityId, prefs, userId)
-  |           +-> supabase.functions.invoke("generate-report") [30s timeout]
-  |           +-> reportService.currentReport = response
-  |           +-> CacheManager.save(response, .currentReport)
+  +-> explorationService.generateExploration(title, startType, cityId, prefs, userId)
+  |     +-> supabase.functions.invoke("generate-report") [30s timeout]
+  |     +-> explorationService.explorations.append(response)
+  |     +-> reportService.currentReport = response (legacy compat)
+  |     +-> CacheManager.save(explorations)
   |
   +-> advanceOnboarding(from: .generating)
         +-> removeLast() [.generating]
@@ -544,6 +616,31 @@ GeneratingView.onAppear
   |
   v
 RecommendationsView renders matches from reportService.currentReport
+```
+
+### 5.2b New Exploration (Post-Onboarding Modal)
+
+```
+User taps "+" or "New Exploration" button
+  |
+  v
+showNewExplorationModal = true
+  |
+  v
+NewExplorationFlow (sheet)
+  +-> All state is local @State (title, startType, cityId, preferences)
+  +-> ExplorationName -> ExplorationMethod -> ExplorationCityPicker
+  |   -> ExplorationPreferences -> ExplorationGenerating -> ExplorationResults
+  |
+  v
+ExplorationGeneratingStepView.onAppear
+  +-> explorationService.generateExploration(title, startType, cityId, prefs, userId)
+  +-> reportService.currentReport = response (legacy compat)
+  +-> CacheManager.save(explorations)
+  |
+  v
+ExplorationResultsStepView shows matches + "Done" button
+  +-> Dismisses sheet
 ```
 
 ### 5.3 Save/Unsave City
@@ -616,7 +713,7 @@ SavedCitiesService.toggleSave(cityId)
 | **No pagination** | 55 cities loads fully into memory | Fine for MVP; add cursor-based pagination before 500+ cities |
 | **Cache corruption** | Auto-deleted, but user sees empty state until network fetch | Add migration versioning to cache format |
 | **No analytics pipeline** | `engagement_events` table exists but client never writes events | Implement event tracking for key user actions |
-| **Map tab is placeholder** | Users see an incomplete feature | Either implement MapKit integration or remove tab from MVP |
+| **Map tab** | Interactive MapKit view with annotations + filters | Functional; needs performance tuning for large city counts |
 | **Vibe tags unused** | Schema exists (`vibe_tags`, `city_vibe_tags`, `user_preferences.selected_vibe_tags`) but no client integration | Wire up or remove from schema |
 
 ### 7.3 Low Priority / Future
@@ -624,7 +721,7 @@ SavedCitiesService.toggleSave(cityId)
 | Item | Notes |
 |------|-------|
 | **No push notifications** | Config exists in Supabase but not wired to client |
-| **No deep linking** | Universal links not configured |
+| **Deep linking** | Universal Links configured for all tabs + auth callback; AppClip AASA registered |
 | **No accessibility audit** | Dynamic Type, VoiceOver labels not verified |
 | **No localization** | English only; strings not externalized |
 | **No A/B testing** | DevModeView has placeholder for feature flags |
@@ -670,7 +767,7 @@ SavedCitiesService.toggleSave(cityId)
 - [ ] Run seed data against remote database
 - [ ] Unpause Supabase project and verify all endpoints
 - [ ] End-to-end test: sign up -> generate report -> relaunch -> verify cache
-- [ ] Fix MapView (implement or remove)
+- [x] MapView — interactive map with city pins and filters
 - [ ] Add basic unit tests for CacheManager and service layer
 
 ### 9.2 Phase 2: Production Readiness
@@ -686,12 +783,12 @@ SavedCitiesService.toggleSave(cityId)
 ### 9.3 Phase 3: Feature Expansion
 
 - [ ] Vibe tags integration (browse cities by vibe)
-- [ ] Interactive map with city pins and filters
+- [x] Interactive map with city pins and filters
 - [ ] Social features (share reports, compare with friends)
 - [ ] Push notifications for new city data
-- [ ] Edit profile (name, avatar)
-- [ ] Report comparison (side-by-side reports over time)
-- [ ] City detail view (deep-dive into a single city)
+- [x] Edit profile (name, home city, preferences via EditProfileView)
+- [x] Multiple named Explorations with detail views (replaces single report model)
+- [x] City detail view (CityDetailView with scores, comparison, insights)
 - [ ] Onboarding A/B testing (start type variants)
 
 ### 9.4 Phase 4: Scale
@@ -771,6 +868,9 @@ supabase functions deploy generate-report
 | **pg_trgm** | PostgreSQL extension for fuzzy text matching using trigram similarity |
 | **GoTrue** | Supabase's authentication service (JWT-based) |
 | **PostgREST** | Supabase's auto-generated REST API from PostgreSQL schema |
+| **Exploration** | A named user session combining preferences, an optional baseline city, and AI-generated city matches |
+| **AppClip** | A lightweight version of the app (< 10MB) accessible via NFC/QR/URL without full App Store download |
+| **Liquid Glass** | iOS 26 design language for translucent, floating UI elements (tab bar, navigation bar) |
 
 ---
 

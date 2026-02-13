@@ -3,6 +3,8 @@ import SwiftUI
 struct StartTypeView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @State private var appeared = false
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     private let options: [(StartType, String, String, String)] = [
         (.cityILove, "A city I love", "Start with a city you love and why. We'll show you similar ones", "building.2"),
@@ -28,6 +30,19 @@ struct StartTypeView: View {
                         icon: option.3,
                         isSelected: coordinator.selectedStartType == option.0
                     ) {
+                        let typeKey = switch option.0 {
+                        case .cityILove: "city_i_love"
+                        case .vibes: "vibes"
+                        case .myWords: "own_words"
+                        }
+                        analytics.trackButtonTap(typeKey, screen: "start_type")
+                        analytics.track("start_type_selected", screen: "start_type", properties: ["type": typeKey])
+                        analytics.track("onboarding_step_completed", screen: "start_type", properties: [
+                            "step": "start_type",
+                            "duration_ms": String(Int(Date().timeIntervalSince(screenEnteredAt) * 1000)),
+                            "selected_type": typeKey
+                        ])
+
                         coordinator.selectedStartType = option.0
                         coordinator.preferences.startType = option.0
 
@@ -51,7 +66,13 @@ struct StartTypeView: View {
         .background(TeleportTheme.Colors.background)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("start_type")
             appeared = true
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("start_type", durationMs: ms, exitType: "advanced")
         }
     }
 }

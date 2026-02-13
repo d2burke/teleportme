@@ -3,6 +3,8 @@ import SwiftUI
 struct CityBaselineView: View {
     @Environment(AppCoordinator.self) private var coordinator
     @State private var appeared = false
+    @State private var screenEnteredAt = Date()
+    private let analytics = AnalyticsService.shared
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
@@ -101,6 +103,17 @@ struct CityBaselineView: View {
                         .opacity(appeared ? 1 : 0)
                         .animation(.spring(response: 0.5).delay(0.4), value: appeared)
                     }
+                    // CTA — inside the city data block so it only appears when loaded
+                    TeleportButton(title: "Next: Target Factors", icon: "arrow.right") {
+                        analytics.trackButtonTap("continue", screen: "city_baseline")
+                        analytics.track("onboarding_step_completed", screen: "city_baseline", properties: [
+                            "step": "city_baseline",
+                            "duration_ms": String(Int(Date().timeIntervalSince(screenEnteredAt) * 1000))
+                        ])
+                        coordinator.advanceOnboarding(from: .cityBaseline)
+                    }
+                    .padding(.horizontal, TeleportTheme.Spacing.lg)
+                    .padding(.bottom, TeleportTheme.Spacing.xxl)
                 } else {
                     // Loading state
                     VStack(spacing: TeleportTheme.Spacing.md) {
@@ -113,23 +126,20 @@ struct CityBaselineView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.top, 200)
                 }
-
-                // CTA — only enabled when city data has loaded
-                TeleportButton(title: "Next: Target Factors", icon: "arrow.right") {
-                    coordinator.advanceOnboarding(from: .cityBaseline)
-                }
-                .disabled(coordinator.selectedCity == nil)
-                .opacity(coordinator.selectedCity != nil ? 1 : 0.4)
-                .padding(.horizontal, TeleportTheme.Spacing.lg)
-                .padding(.bottom, TeleportTheme.Spacing.xxl)
             }
         }
         .background(TeleportTheme.Colors.background)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            screenEnteredAt = Date()
+            analytics.trackScreenView("city_baseline")
             withAnimation {
                 appeared = true
             }
+        }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("city_baseline", durationMs: ms, exitType: "advanced")
         }
     }
 

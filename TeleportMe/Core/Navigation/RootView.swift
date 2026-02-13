@@ -6,6 +6,8 @@ struct RootView: View {
     var body: some View {
         Group {
             switch coordinator.currentScreen {
+            case .loading:
+                LoadingView()
             case .splash:
                 SplashView()
             case .onboarding:
@@ -22,9 +24,37 @@ struct RootView: View {
 
     private var screenKey: String {
         switch coordinator.currentScreen {
+        case .loading: "loading"
         case .splash: "splash"
         case .onboarding: "onboarding"
         case .main: "main"
+        }
+    }
+}
+
+// MARK: - Loading View (matches launch screen)
+
+/// Displayed while checking auth state. Visually identical to the system launch screen
+/// so the transition from launch → loading is seamless. Once the session check completes
+/// this transitions to either SplashView (unauthenticated) or MainTabView (authenticated).
+struct LoadingView: View {
+    private let analytics = AnalyticsService.shared
+    @State private var screenEnteredAt = Date()
+
+    var body: some View {
+        ZStack {
+            TeleportTheme.Colors.background
+                .ignoresSafeArea()
+
+            Image("LaunchLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 120, height: 120)
+        }
+        .onAppear { analytics.trackScreenView("loading") }
+        .onDisappear {
+            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
+            analytics.trackScreenExit("loading", durationMs: ms, exitType: "completed")
         }
     }
 }
@@ -90,8 +120,21 @@ struct MainTabView: View {
             Tab("Profile", systemImage: "person", value: .profile) {
                 ProfileView()
             }
+
+            // iOS 26 search tab — visually separated on the right (liquid glass)
+            // Tapping the search icon morphs into an inline search field above the keyboard
+            Tab("Search", systemImage: "magnifyingglass", value: .search, role: .search) {
+                NavigationStack {
+                    SearchView()
+                        .navigationTitle("Search")
+                        .searchable(text: $coord.searchText, prompt: "Search cities...")
+                }
+            }
         }
         .tint(TeleportTheme.Colors.accent)
+        .sheet(isPresented: $coord.showNewExplorationModal) {
+            NewExplorationFlow()
+        }
         .task {
             await coordinator.cityService.fetchAllCities()
         }
