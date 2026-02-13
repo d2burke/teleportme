@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [{
+      "appID": "973RBN29J8.app.TeleportMe",
+      "paths": ["/auth/callback"]
+    }]
+  }
+}
+
