@@ -26,23 +26,38 @@ final class SavedCitiesService {
         loadError = nil
         defer { isLoading = false }
 
-        do {
-            let session = try await supabase.auth.session
-            let userId = session.user.id.uuidString
-            cachedUserId = userId
-
-            // Step 1: Load from cache immediately
-            if let cached = cache.load(
-                [SavedCity].self,
-                for: .savedCities(userId: userId),
-                ttl: savedCitiesTTL
-            ) {
-                savedCities = cached.data
-                savedCityIds = Set(cached.data.map { $0.cityId })
-                if !cached.isStale { return }  // Fresh cache — skip network
+        // Try to resolve userId — from cache first, then session
+        var userId = cachedUserId
+        if userId == nil {
+            do {
+                let session = try await supabase.auth.session
+                userId = session.user.id.uuidString
+                cachedUserId = userId
+            } catch {
+                // If we can't get a session, try loading from cache with whatever userId we have
+                if savedCities.isEmpty {
+                    loadError = error.localizedDescription
+                }
+                print("Failed to get session for saved cities: \(error)")
+                return
             }
+        }
 
-            // Step 2: Fetch from network
+        guard let userId else { return }
+
+        // Step 1: Load from cache immediately
+        if let cached = cache.load(
+            [SavedCity].self,
+            for: .savedCities(userId: userId),
+            ttl: savedCitiesTTL
+        ) {
+            savedCities = cached.data
+            savedCityIds = Set(cached.data.map { $0.cityId })
+            if !cached.isStale { return }  // Fresh cache — skip network
+        }
+
+        // Step 2: Fetch from network
+        do {
             let cities: [SavedCity] = try await withTimeout(seconds: 10) {
                 try await self.supabase
                     .from("saved_cities")
@@ -84,23 +99,34 @@ final class SavedCitiesService {
     // MARK: - Save
 
     private func save(cityId: String) async {
+        // Resolve userId — use cached value if available (works offline)
+        let userId: String
+        if let cached = cachedUserId {
+            userId = cached
+        } else {
+            do {
+                let session = try await supabase.auth.session
+                userId = session.user.id.uuidString
+                cachedUserId = userId
+            } catch {
+                print("Failed to save city (no session): \(error)")
+                return
+            }
+        }
+
+        // Optimistic update FIRST (before any network calls)
+        savedCityIds.insert(cityId)
+        let optimistic = SavedCity(
+            id: nil,
+            userId: userId,
+            cityId: cityId,
+            createdAt: Date()
+        )
+        savedCities.insert(optimistic, at: 0)
+        writeThroughCache(userId: userId)
+
+        // Persist to Supabase in background (non-blocking)
         do {
-            let session = try await supabase.auth.session
-            let userId = session.user.id.uuidString
-            cachedUserId = userId
-
-            // Optimistic update
-            savedCityIds.insert(cityId)
-            let optimistic = SavedCity(
-                id: nil,
-                userId: userId,
-                cityId: cityId,
-                createdAt: Date()
-            )
-            savedCities.insert(optimistic, at: 0)
-            writeThroughCache(userId: userId)
-
-            // Persist to Supabase
             let inserted: SavedCity = try await supabase
                 .from("saved_cities")
                 .insert([
@@ -118,23 +144,23 @@ final class SavedCitiesService {
             }
             writeThroughCache(userId: userId)
         } catch {
-            // Rollback optimistic update
-            savedCityIds.remove(cityId)
-            savedCities.removeAll { $0.cityId == cityId }
-            writeThroughCache(userId: cachedUserId)
-            print("Failed to save city: \(error)")
+            // Network failed — keep the local save (it's cached and will show on relaunch).
+            // The save stays visible to the user and persists in cache.
+            // It will be reconciled on next successful loadSavedCities() from server.
+            print("Failed to persist save to server (kept locally): \(error)")
         }
     }
 
     // MARK: - Unsave
 
     func unsave(cityId: String) async {
-        // Optimistic update
+        // Optimistic update FIRST
         let removedCities = savedCities.filter { $0.cityId == cityId }
         savedCityIds.remove(cityId)
         savedCities.removeAll { $0.cityId == cityId }
         writeThroughCache(userId: cachedUserId)
 
+        // Persist to Supabase in background
         do {
             let session = try await supabase.auth.session
             let userId = session.user.id.uuidString
@@ -146,12 +172,9 @@ final class SavedCitiesService {
                 .eq("city_id", value: cityId)
                 .execute()
         } catch {
-            // Rollback optimistic update
-            savedCityIds.insert(cityId)
-            savedCities.append(contentsOf: removedCities)
-            savedCities.sort { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
-            writeThroughCache(userId: cachedUserId)
-            print("Failed to unsave city: \(error)")
+            // Network failed — keep the unsave (removed locally).
+            // Will be reconciled on next loadSavedCities() from server.
+            print("Failed to persist unsave to server (kept locally): \(error)")
         }
     }
 

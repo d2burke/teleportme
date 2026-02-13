@@ -117,6 +117,24 @@ final class AuthService {
         }
     }
 
+    // MARK: - Deep Link (Universal Link callback)
+
+    /// Handles an incoming Universal Link from Supabase auth (e.g. email confirmation).
+    /// The SDK extracts the PKCE auth code from the URL and exchanges it for a session.
+    func handleDeepLink(_ url: URL) {
+        Task {
+            do {
+                let session = try await supabase.auth.session(from: url)
+                currentUser = session.user
+                await loadProfile()
+            } catch {
+                print("Deep link auth failed: \(error)")
+            }
+        }
+    }
+
+    // MARK: - Update Profile
+
     func updateProfile(name: String? = nil, currentCityId: String? = nil) async throws {
         guard let userId = currentUser?.id else { return }
 

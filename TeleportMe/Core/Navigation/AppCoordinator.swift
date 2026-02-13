@@ -9,6 +9,38 @@ enum AppScreen {
     case main
 }
 
+/// Tabs in the main TabView, selectable via deep link.
+enum AppTab: String, Hashable {
+    case discover
+    case saved
+    case map
+    case profile
+}
+
+/// Routes the app can handle via Universal Links.
+enum DeepLink {
+    case authCallback(URL)   // /auth/callback – Supabase PKCE exchange
+    case tab(AppTab)         // /profile, /discover, /saved, /map
+
+    init?(url: URL) {
+        let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        switch path {
+        case "auth/callback":
+            self = .authCallback(url)
+        case "profile":
+            self = .tab(.profile)
+        case "discover":
+            self = .tab(.discover)
+        case "saved":
+            self = .tab(.saved)
+        case "map":
+            self = .tab(.map)
+        default:
+            return nil
+        }
+    }
+}
+
 enum OnboardingStep: Int, CaseIterable, Hashable {
     case name = 0
     case signUp = 1
@@ -34,6 +66,7 @@ enum OnboardingStep: Int, CaseIterable, Hashable {
 final class AppCoordinator {
     var currentScreen: AppScreen = .splash
     var navigationPath = NavigationPath()
+    var selectedTab: AppTab = .discover
 
     // When true, skips Supabase auth calls so you can test the full
     // onboarding flow without creating accounts or hitting rate limits.
@@ -94,6 +127,36 @@ final class AppCoordinator {
 
     func goToMain() {
         currentScreen = .main
+    }
+
+    // MARK: - Deep Link Routing
+
+    /// Handles an incoming Universal Link URL.
+    /// Auth callbacks are forwarded to AuthService; tab links switch the active tab.
+    func handleDeepLink(_ url: URL) {
+        guard let link = DeepLink(url: url) else {
+            print("Unrecognised deep link: \(url)")
+            return
+        }
+
+        switch link {
+        case .authCallback(let callbackURL):
+            authService.handleDeepLink(callbackURL)
+
+        case .tab(let tab):
+            // If the user is already on main, just switch tabs
+            if currentScreen == .main {
+                selectedTab = tab
+            } else {
+                // Queue the tab switch — once session check completes and
+                // transitions to main, the selectedTab will already be set.
+                selectedTab = tab
+                // If we have an authenticated user, jump straight to main
+                if authService.isAuthenticated {
+                    currentScreen = .main
+                }
+            }
+        }
     }
 
     // MARK: - City Selection (during onboarding)
@@ -167,8 +230,9 @@ final class AppCoordinator {
         if authService.isAuthenticated {
             let userId = authService.currentUser?.id.uuidString
 
-            // Restore cached state before transitioning to main
+            // Set userId on services so they can operate offline
             if let userId {
+                savedCitiesService.cachedUserId = userId
                 restoreCachedState(userId: userId)
             }
 

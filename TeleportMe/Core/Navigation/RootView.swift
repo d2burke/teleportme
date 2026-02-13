@@ -75,17 +75,19 @@ struct MainTabView: View {
     @Environment(AppCoordinator.self) private var coordinator
 
     var body: some View {
-        TabView {
-            Tab("Discover", systemImage: "safari") {
+        @Bindable var coord = coordinator
+
+        TabView(selection: $coord.selectedTab) {
+            Tab("Discover", systemImage: "safari", value: .discover) {
                 DiscoverView()
             }
-            Tab("Saved", systemImage: "heart") {
+            Tab("Saved", systemImage: "heart", value: .saved) {
                 SavedView()
             }
-            Tab("Map", systemImage: "map") {
+            Tab("Map", systemImage: "map", value: .map) {
                 CityMapView()
             }
-            Tab("Profile", systemImage: "person") {
+            Tab("Profile", systemImage: "person", value: .profile) {
                 ProfileView()
             }
         }

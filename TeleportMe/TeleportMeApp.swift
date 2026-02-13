@@ -84,6 +84,9 @@ struct TeleportMeApp: App {
             RootView()
                 .environment(appCoordinator)
                 .preferredColorScheme(.dark)
+                .onOpenURL { url in
+                    appCoordinator.handleDeepLink(url)
+                }
         }
     }
 }

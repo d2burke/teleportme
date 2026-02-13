@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeleportMe – Your Profile</title>
+
+    <!-- Apple Smart App Banner (shows native "Open in App" bar on Safari) -->
+    <meta name="apple-itunes-app" content="app-id=YOUR_APP_STORE_ID, app-argument=https://getteleport.me/profile">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #0A0A0A;
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .card {
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #D4FF00;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .open-btn {
+            display: inline-block;
+            background: #D4FF00;
+            color: #0A0A0A;
+            font-size: 17px;
+            font-weight: 600;
+            padding: 16px 48px;
+            border-radius: 14px;
+            text-decoration: none;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            margin-bottom: 16px;
+        }
+
+        .open-btn:hover {
+            transform: scale(1.03);
+        }
+
+        .open-btn:active {
+            transform: scale(0.97);
+            opacity: 0.8;
+        }
+
+        .fallback {
+            font-size: 14px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 12px;
+        }
+
+        .fallback a {
+            color: #D4FF00;
+            text-decoration: none;
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .badge-row img {
+            height: 44px;
+            border-radius: 8px;
+        }
+
+        /* Redirect notice (shown briefly on mobile before Universal Link fires) */
+        .redirect-notice {
+            display: none;
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="logo">🌍</div>
+    <h1>TeleportMe</h1>
+    <p class="subtitle">Open your profile in the TeleportMe app to see your personalized city recommendations.</p>
+
+    <!-- This link is the Universal Link. On iOS with the app installed,
+         tapping it (or the page loading with the redirect) opens the app
+         directly. On desktop / no app, it just stays on this page. -->
+    <a href="https://getteleport.me/profile" class="open-btn" id="openApp">
+        Open in App
+    </a>
+
+    <p class="fallback">
+        Don't have the app?
+        <!-- Replace # with your actual App Store link once published -->
+        <a href="#">Download on the App Store</a>
+    </p>
+
+    <p class="redirect-notice" id="redirectNotice">
+        Opening TeleportMe…
+    </p>
+</div>
+
+<script>
+    // Detect iOS / iPadOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // Detect any mobile (for Android future-proofing)
+    const isMobile = isIOS || /Android/i.test(navigator.userAgent);
+
+    if (isIOS) {
+        // On iOS, the Universal Link should have already intercepted this page load
+        // if the app is installed. If we got here, the app isn't installed.
+        // Show the fallback content (already visible by default).
+        //
+        // The "Open in App" button is also a Universal Link — tapping it will
+        // either open the app (if installed) or reload this same page.
+        document.getElementById('redirectNotice').style.display = 'block';
+        setTimeout(function() {
+            // If we're still here after 1.5s, the app didn't open — hide notice
+            document.getElementById('redirectNotice').style.display = 'none';
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>

@@ -330,8 +330,10 @@ struct DiscoverView: View {
                 .frame(width: 32, height: 32)
                 .background(TeleportTheme.Colors.background.opacity(0.6))
                 .clipShape(Circle())
+                .contentTransition(.symbolEffect(.replace))
         }
         .buttonStyle(.plain)
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: isSaved)
     }
 }
 
