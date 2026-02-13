@@ -1,0 +1,32 @@
+name: Deploy site to GoDaddy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: FTP Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: 192.169.151.247
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./docs/
+          server-dir: ./
+          exclude: |
+            **/.DS_Store
+            **/TRD.md
+            **/TeleportMe_TRD.docx
+            **/generate_docx.py
+            **/.nojekyll
+            **/CNAME
