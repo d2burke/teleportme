@@ -15,8 +15,8 @@ final class SupabaseManager {
     static let authCallbackURL = URL(string: "https://getteleport.me/auth/callback")!
 
     private init() {
-        let url = URL(string: "https://REDACTED_PROJECT_REF.supabase.co")!
-        let key = "REDACTED_SUPABASE_ANON_KEY"
+        let url = URL(string: Secrets.supabaseURL)!
+        let key = Secrets.supabaseAnonKey
 
         client = SupabaseClient(
             supabaseURL: url,

@@ -17,14 +17,24 @@ enum AppTab: String, Hashable {
     case profile
 }
 
-/// Routes the app can handle via Universal Links.
+/// Routes the app can handle via Universal Links or custom URL scheme.
+/// Supports: https://getteleport.me/profile  AND  teleportme://profile
 enum DeepLink {
     case authCallback(URL)   // /auth/callback – Supabase PKCE exchange
     case tab(AppTab)         // /profile, /discover, /saved, /map
 
     init?(url: URL) {
-        let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        switch path {
+        // For custom scheme (teleportme://profile), the route is in `host`.
+        // For https (https://getteleport.me/profile), it's in `path`.
+        let route: String
+        if url.scheme == "teleportme" {
+            route = url.host ?? url.path
+        } else {
+            route = url.path
+        }
+        let cleaned = route.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+
+        switch cleaned {
         case "auth/callback":
             self = .authCallback(url)
         case "profile":
