@@ -56,7 +56,7 @@ struct DiscoverView: View {
                 CityDetailView(city: city)
             }
             .navigationDestination(for: Exploration.self) { exploration in
-                ExplorationDetailView(exploration: exploration)
+                ReportDetailView(viewModel: ResultsViewModel(from: exploration))
             }
             .task {
                 await coordinator.cityService.fetchAllCities()
@@ -224,8 +224,19 @@ struct DiscoverView: View {
                 .foregroundStyle(TeleportTheme.Colors.textPrimary)
                 .lineLimit(2)
 
-            // Baseline city
-            if let cityId = exploration.baselineCityId,
+            // Baseline city or compass heading label
+            if let compassVibes = exploration.compassVibes, !compassVibes.isEmpty {
+                let heading = HeadingEngine.heading(fromRaw: compassVibes)
+                Text("\(heading.emoji) \(heading.name)")
+                    .font(TeleportTheme.Typography.caption(12))
+                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                    .lineLimit(1)
+            } else if exploration.startType == .vibes {
+                Text("Compass exploration")
+                    .font(TeleportTheme.Typography.caption(12))
+                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                    .lineLimit(1)
+            } else if let cityId = exploration.baselineCityId,
                let city = allCities.first(where: { $0.id == cityId }) {
                 Text("Based on \(city.name)")
                     .font(TeleportTheme.Typography.caption(12))
@@ -255,7 +266,7 @@ struct DiscoverView: View {
     private func startTypeIcon(_ startType: StartType) -> String {
         switch startType {
         case .cityILove: return "heart.fill"
-        case .vibes: return "waveform"
+        case .vibes: return "safari"
         case .myWords: return "text.quote"
         }
     }

@@ -13,6 +13,7 @@ struct ExplorationDetailView: View {
     @State private var isEditing = false
     @State private var editedTitle: String = ""
     @State private var showDeleteConfirmation = false
+    @State private var vibeTagNames: [String: VibeTag] = [:]
 
     private var allCities: [City] {
         coordinator.cityService.allCities
@@ -32,6 +33,18 @@ struct ExplorationDetailView: View {
                 if let cityId = exploration.baselineCityId,
                    let city = city(for: cityId) {
                     baselineSection(city: city)
+                }
+
+                // Compass signals (for compass explorations)
+                if let compassVibes = exploration.compassVibes, !compassVibes.isEmpty {
+                    compassSection(vibes: compassVibes, constraints: exploration.compassConstraints)
+                }
+
+                // Vibes used (for legacy vibes-type explorations)
+                if exploration.startType == .vibes,
+                   exploration.compassVibes == nil,
+                   let vibeTags = exploration.vibeTags, !vibeTags.isEmpty {
+                    vibesSection(vibeIds: vibeTags)
                 }
 
                 // Matches / Results
@@ -117,6 +130,22 @@ struct ExplorationDetailView: View {
             ])
             editedTitle = exploration.title
         }
+        .task {
+            // Load vibe tag names for display
+            if exploration.startType == .vibes,
+               let vibeTags = exploration.vibeTags, !vibeTags.isEmpty {
+                do {
+                    let tags = try await coordinator.explorationService.fetchVibeTags()
+                    var map: [String: VibeTag] = [:]
+                    for tag in tags {
+                        map[tag.id] = tag
+                    }
+                    vibeTagNames = map
+                } catch {
+                    print("Failed to load vibe tag names: \(error)")
+                }
+            }
+        }
         .onDisappear {
             let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
             analytics.trackScreenExit("exploration_detail", durationMs: ms, exitType: "back", properties: [
@@ -163,18 +192,121 @@ struct ExplorationDetailView: View {
     }
 
     private var startTypeIcon: String {
+        if exploration.compassVibes != nil { return "safari" }
         switch exploration.startType {
         case .cityILove: return "heart.fill"
-        case .vibes: return "waveform"
+        case .vibes: return "safari"
         case .myWords: return "text.quote"
         }
     }
 
     private var startTypeLabel: String {
+        if exploration.compassVibes != nil { return "Compass" }
         switch exploration.startType {
         case .cityILove: return "City I Love"
-        case .vibes: return "Vibes"
+        case .vibes: return "Compass"
         case .myWords: return "My Own Words"
+        }
+    }
+
+    // MARK: - Compass
+
+    private func compassSection(vibes: [String: Double], constraints: TripConstraints?) -> some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+            // Heading badge
+            let heading = HeadingEngine.heading(fromRaw: vibes)
+            HStack(spacing: TeleportTheme.Spacing.sm) {
+                Text(heading.emoji)
+                    .font(.system(size: 22))
+                Text(heading.name)
+                    .font(TeleportTheme.Typography.cardTitle(16))
+                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            // Active signals
+            FlowLayout(spacing: TeleportTheme.Spacing.xs) {
+                ForEach(vibes.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
+                    if value > 0, let signal = CompassSignal(rawValue: key) {
+                        HStack(spacing: 4) {
+                            Text(signal.emoji)
+                                .font(.system(size: 11))
+                            Text(signal.shortLabel)
+                                .font(TeleportTheme.Typography.caption(11))
+                                .foregroundStyle(signal.color)
+
+                            // Intensity dots
+                            HStack(spacing: 2) {
+                                ForEach(1...3, id: \.self) { i in
+                                    Circle()
+                                        .fill(Double(i) <= value ? signal.color : signal.color.opacity(0.2))
+                                        .frame(width: 4, height: 4)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(signal.color.opacity(0.1))
+                        .clipShape(Capsule())
+                    }
+                }
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            // Constraints
+            if let constraints, constraints.hasAny {
+                HStack(spacing: TeleportTheme.Spacing.sm) {
+                    if let travel = constraints.travelDistance {
+                        constraintPill(emoji: travel.emoji, label: travel.label)
+                    }
+                    if let safety = constraints.safetyComfort {
+                        constraintPill(emoji: safety.emoji, label: safety.label)
+                    }
+                    if let budget = constraints.budgetVibe {
+                        constraintPill(emoji: budget.emoji, label: budget.label)
+                    }
+                }
+                .padding(.horizontal, TeleportTheme.Spacing.lg)
+            }
+        }
+    }
+
+    private func constraintPill(emoji: String, label: String) -> some View {
+        HStack(spacing: 4) {
+            Text(emoji)
+                .font(.system(size: 10))
+            Text(label)
+                .font(TeleportTheme.Typography.caption(10))
+                .foregroundStyle(TeleportTheme.Colors.textSecondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(TeleportTheme.Colors.surface)
+        .clipShape(Capsule())
+        .overlay {
+            Capsule().strokeBorder(TeleportTheme.Colors.border, lineWidth: 1)
+        }
+    }
+
+    // MARK: - Vibes
+
+    private func vibesSection(vibeIds: [String]) -> some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+            SectionHeader(title: "Vibes")
+                .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            FlowLayout(spacing: TeleportTheme.Spacing.sm) {
+                ForEach(vibeIds, id: \.self) { vibeId in
+                    if let tag = vibeTagNames[vibeId] {
+                        TrendingChip(
+                            title: "\(tag.emoji ?? "") \(tag.name)",
+                            isSelected: true
+                        ) {}
+                        .disabled(true)
+                    }
+                }
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
         }
     }
 
@@ -398,6 +530,8 @@ struct ExplorationDetailView: View {
                     aiSummary: "Based on your love for Lisbon's warm climate and rich culture, we found several cities that share similar vibes.",
                     vibeTags: nil,
                     freeText: nil,
+                    compassVibes: nil,
+                    compassConstraints: nil,
                     createdAt: Date(),
                     updatedAt: Date()
                 )

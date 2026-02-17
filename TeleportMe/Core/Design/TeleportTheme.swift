@@ -7,6 +7,8 @@ enum TeleportTheme {
     enum Colors {
         /// Primary background — near black
         static let background = Color(hex: "0A0A0A")
+        /// Modal/sheet background — slightly lighter for layering distinction
+        static let backgroundElevated = Color(hex: "111111")
         /// Card / surface background
         static let surface = Color(hex: "1A1A1A")
         /// Elevated surface (active cards, selected states)

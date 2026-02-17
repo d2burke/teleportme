@@ -86,8 +86,9 @@ struct ClipResultsView: View {
                         analytics.trackButtonTap("start_over", screen: "clip_results")
                         withAnimation {
                             coordinator.generatedResponse = nil
-                            coordinator.preferences = .defaults
-                            coordinator.currentScreen = .preferences
+                            coordinator.signalWeights = [:]
+                            coordinator.tripConstraints = TripConstraints()
+                            coordinator.currentScreen = .startType
                         }
                     }
                     .font(TeleportTheme.Typography.body(14))

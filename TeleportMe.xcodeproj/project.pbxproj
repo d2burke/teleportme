@@ -94,6 +94,8 @@
 				Config/Secrets.swift,
 				Core/Design/Components.swift,
 				Core/Design/TeleportTheme.swift,
+				Core/Models/CompassModels.swift,
+				Core/Models/HeadingEngine.swift,
 				Core/Models/Models.swift,
 				Core/Services/AnalyticsService.swift,
 				Core/Services/CityService.swift,
@@ -101,6 +103,9 @@
 				Core/Services/SupabaseManager.swift,
 				Core/Utilities/AsyncHelpers.swift,
 				Core/Utilities/CacheManager.swift,
+				Features/Compass/ConstraintsView.swift,
+				Features/Compass/TripVibesView.swift,
+				Features/Discovery/VibeSelectionView.swift,
 			);
 			target = 8269D31D2F3F9C100000E27B /* Clip */;
 		};

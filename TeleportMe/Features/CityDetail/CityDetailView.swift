@@ -10,6 +10,9 @@ struct CityDetailView: View {
     let city: City
 
     @State private var cityWithScores: CityWithScores?
+    @State private var similarCities: [CityService.SimilarCity] = []
+    @State private var insights: CityInsights?
+    @State private var isLoadingInsights = false
     @State private var isLoading = true
 
     // All scores sorted for pivot links
@@ -43,6 +46,13 @@ struct CityDetailView: View {
                     summarySection(summary)
                 }
 
+                // Known For & Concerns
+                if let insights {
+                    insightsSection(insights)
+                } else if isLoadingInsights {
+                    insightsLoadingSection
+                }
+
                 // Scores
                 if let cws = cityWithScores {
                     scoresSection(cws)
@@ -51,6 +61,11 @@ struct CityDetailView: View {
                         .tint(TeleportTheme.Colors.accent)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, TeleportTheme.Spacing.xl)
+                }
+
+                // Similar Cities
+                if !similarCities.isEmpty {
+                    similarCitiesSection
                 }
 
                 Spacer(minLength: TeleportTheme.Spacing.xxl)
@@ -96,13 +111,25 @@ struct CityDetailView: View {
 
     private func loadScores() async {
         isLoading = true
+        isLoadingInsights = true
         let start = Date()
         defer { isLoading = false }
         cityWithScores = await coordinator.cityService.getCityWithScores(cityId: city.id)
+
+        // Compute similar cities from the in-memory score cache
+        similarCities = coordinator.cityService.similarCities(to: city.id, limit: 8)
+
         let ms = Int(Date().timeIntervalSince(start) * 1000)
         analytics.track("city_detail_loaded", screen: "city_detail", properties: [
-            "city_id": city.id, "duration_ms": String(ms)
+            "city_id": city.id, "duration_ms": String(ms),
+            "similar_count": String(similarCities.count)
         ])
+
+        // Fetch insights (non-blocking — loads after scores appear)
+        Task {
+            insights = await coordinator.cityService.getCityInsights(cityId: city.id)
+            isLoadingInsights = false
+        }
     }
 
     // MARK: - Hero Section
@@ -194,6 +221,147 @@ struct CityDetailView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Insights Section (Known For & Concerns)
+
+    private func insightsSection(_ insights: CityInsights) -> some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.lg) {
+            // Known For
+            if !insights.knownFor.isEmpty {
+                VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+                    SectionHeader(title: "Known For")
+                        .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+                    FlowLayout(spacing: TeleportTheme.Spacing.sm) {
+                        ForEach(insights.knownFor, id: \.self) { item in
+                            insightChip(item, icon: "checkmark.circle.fill", color: .green)
+                        }
+                    }
+                    .padding(.horizontal, TeleportTheme.Spacing.lg)
+                }
+            }
+
+            // Concerns
+            if !insights.concerns.isEmpty {
+                VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+                    SectionHeader(title: "Concerns")
+                        .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+                    FlowLayout(spacing: TeleportTheme.Spacing.sm) {
+                        ForEach(insights.concerns, id: \.self) { item in
+                            insightChip(item, icon: "exclamationmark.triangle.fill", color: .orange)
+                        }
+                    }
+                    .padding(.horizontal, TeleportTheme.Spacing.lg)
+                }
+            }
+        }
+    }
+
+    private func insightChip(_ text: String, icon: String, color: Color) -> some View {
+        HStack(spacing: TeleportTheme.Spacing.xs) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(color.opacity(0.8))
+
+            Text(text)
+                .font(TeleportTheme.Typography.caption(13))
+                .foregroundStyle(TeleportTheme.Colors.textPrimary)
+        }
+        .padding(.horizontal, TeleportTheme.Spacing.md)
+        .padding(.vertical, TeleportTheme.Spacing.sm)
+        .background(TeleportTheme.Colors.surface)
+        .clipShape(Capsule())
+        .overlay {
+            Capsule()
+                .strokeBorder(TeleportTheme.Colors.border, lineWidth: 1)
+        }
+    }
+
+    private var insightsLoadingSection: some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+            SectionHeader(title: "Known For")
+                .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            HStack(spacing: TeleportTheme.Spacing.sm) {
+                ForEach(0..<3, id: \.self) { _ in
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(TeleportTheme.Colors.surface)
+                        .frame(width: 120, height: 32)
+                }
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
+            .redacted(reason: .placeholder)
+        }
+    }
+
+    // MARK: - Similar Cities Section
+
+    private var similarCitiesSection: some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
+            SectionHeader(title: "Similar Cities")
+                .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: TeleportTheme.Spacing.md) {
+                    ForEach(similarCities, id: \.city.id) { similar in
+                        NavigationLink(value: similar.city) {
+                            similarCityCard(similar)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, TeleportTheme.Spacing.lg)
+            }
+        }
+    }
+
+    private func similarCityCard(_ similar: CityService.SimilarCity) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // City image
+            AsyncImage(url: URL(string: similar.city.imageUrl ?? "")) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure:
+                    Rectangle().fill(TeleportTheme.Colors.surfaceElevated)
+                default:
+                    Rectangle()
+                        .fill(TeleportTheme.Colors.surfaceElevated)
+                        .overlay {
+                            ProgressView()
+                                .tint(TeleportTheme.Colors.accent)
+                        }
+                }
+            }
+            .frame(width: 160, height: 110)
+            .clipped()
+
+            // City info + comparison tag
+            VStack(alignment: .leading, spacing: TeleportTheme.Spacing.xs) {
+                Text(similar.city.name)
+                    .font(TeleportTheme.Typography.cardTitle(15))
+                    .foregroundStyle(TeleportTheme.Colors.textPrimary)
+                    .lineLimit(1)
+
+                Text(similar.city.country)
+                    .font(TeleportTheme.Typography.caption(12))
+                    .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                    .lineLimit(1)
+
+                Text(similar.comparisonTag)
+                    .font(TeleportTheme.Typography.caption(11))
+                    .foregroundStyle(TeleportTheme.Colors.accent)
+                    .lineLimit(1)
+            }
+            .padding(TeleportTheme.Spacing.sm)
+        }
+        .frame(width: 160, height: 200)
+        .background(TeleportTheme.Colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.card))
     }
 
     // MARK: - Score Category Data

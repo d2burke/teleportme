@@ -78,6 +78,8 @@ struct OnboardingFlowView: View {
 
     @ViewBuilder
     private func destinationView(for step: OnboardingStep) -> some View {
+        @Bindable var coord = coordinator
+
         switch step {
         case .name:
             NameInputView()
@@ -89,8 +91,26 @@ struct OnboardingFlowView: View {
             CitySearchView()
         case .cityBaseline:
             CityBaselineView()
-        case .preferences:
-            PreferencesView()
+        case .tripVibes:
+            TripVibesView(
+                signalWeights: $coord.signalWeights,
+                onContinue: {
+                    coordinator.advanceOnboarding(from: .tripVibes)
+                },
+                onBack: {
+                    coordinator.goBackOnboarding(from: .tripVibes)
+                }
+            )
+        case .constraints:
+            ConstraintsView(
+                constraints: $coord.tripConstraints,
+                onContinue: {
+                    coordinator.advanceOnboarding(from: .constraints)
+                },
+                onBack: {
+                    coordinator.goBackOnboarding(from: .constraints)
+                }
+            )
         case .generating:
             GeneratingView()
         case .recommendations:

@@ -26,6 +26,24 @@ struct City: Codable, Identifiable, Hashable {
         case updatedAt = "updated_at"
     }
 
+    init(id: String, name: String, fullName: String, country: String, continent: String,
+         latitude: Double, longitude: Double, population: Int?, teleportCityScore: Double?,
+         summary: String?, imageUrl: String?, createdAt: Date? = nil, updatedAt: Date? = nil) {
+        self.id = id
+        self.name = name
+        self.fullName = fullName
+        self.country = country
+        self.continent = continent
+        self.latitude = latitude
+        self.longitude = longitude
+        self.population = population
+        self.teleportCityScore = teleportCityScore
+        self.summary = summary
+        self.imageUrl = imageUrl
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -46,6 +64,22 @@ struct CityScore: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id, category, score
         case cityId = "city_id"
+    }
+}
+
+// MARK: - City Insights
+
+struct CityInsights: Codable {
+    let cityId: String
+    let knownFor: [String]
+    let concerns: [String]
+    let generatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case cityId = "city_id"
+        case knownFor = "known_for"
+        case concerns
+        case generatedAt = "generated_at"
     }
 }
 
@@ -138,6 +172,8 @@ struct UserPreferences: Codable {
     var safetyPreference: Double
     var commutePreference: Double
     var healthcarePreference: Double
+    var selectedVibeTags: [String]?
+    var signalWeights: [String: Double]?
 
     enum CodingKeys: String, CodingKey {
         case startType = "start_type"
@@ -148,6 +184,8 @@ struct UserPreferences: Codable {
         case safetyPreference = "safety_preference"
         case commutePreference = "commute_preference"
         case healthcarePreference = "healthcare_preference"
+        case selectedVibeTags = "selected_vibe_tags"
+        case signalWeights = "signal_weights"
     }
 
     static var defaults: UserPreferences {
@@ -159,7 +197,9 @@ struct UserPreferences: Codable {
             jobMarketPreference: 5.0,
             safetyPreference: 5.0,
             commutePreference: 5.0,
-            healthcarePreference: 5.0
+            healthcarePreference: 5.0,
+            selectedVibeTags: nil,
+            signalWeights: nil
         )
     }
 
@@ -175,7 +215,8 @@ struct UserPreferences: Codable {
             jobMarketPreference: city.score(for: "Economy").clamped(to: 0...10),
             safetyPreference: city.score(for: "Safety").clamped(to: 0...10),
             commutePreference: city.score(for: "Commute").clamped(to: 0...10),
-            healthcarePreference: city.score(for: "Healthcare").clamped(to: 0...10)
+            healthcarePreference: city.score(for: "Healthcare").clamped(to: 0...10),
+            selectedVibeTags: nil
         )
     }
 
@@ -190,6 +231,8 @@ struct UserPreferences: Codable {
         safetyPreference = try container.decodeIfPresent(Double.self, forKey: .safetyPreference) ?? 5.0
         commutePreference = try container.decodeIfPresent(Double.self, forKey: .commutePreference) ?? 5.0
         healthcarePreference = try container.decodeIfPresent(Double.self, forKey: .healthcarePreference) ?? 5.0
+        selectedVibeTags = try container.decodeIfPresent([String].self, forKey: .selectedVibeTags)
+        signalWeights = try container.decodeIfPresent([String: Double].self, forKey: .signalWeights)
     }
 
     init(
@@ -200,7 +243,9 @@ struct UserPreferences: Codable {
         jobMarketPreference: Double = 5.0,
         safetyPreference: Double = 5.0,
         commutePreference: Double = 5.0,
-        healthcarePreference: Double = 5.0
+        healthcarePreference: Double = 5.0,
+        selectedVibeTags: [String]? = nil,
+        signalWeights: [String: Double]? = nil
     ) {
         self.startType = startType
         self.costPreference = costPreference
@@ -210,6 +255,8 @@ struct UserPreferences: Codable {
         self.safetyPreference = safetyPreference
         self.commutePreference = commutePreference
         self.healthcarePreference = healthcarePreference
+        self.selectedVibeTags = selectedVibeTags
+        self.signalWeights = signalWeights
     }
 }
 
@@ -225,6 +272,39 @@ enum StartType: String, Codable {
     case myWords = "my_words"
 }
 
+// MARK: - Vibe Tags
+
+struct VibeTag: Codable, Identifiable, Hashable {
+    let id: String
+    let name: String
+    let emoji: String?
+    let category: String?
+    let createdAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, emoji, category
+        case createdAt = "created_at"
+    }
+}
+
+enum VibeCategory: String, CaseIterable {
+    case lifestyle
+    case culture
+    case pace
+    case values
+    case environment
+
+    var displayName: String {
+        switch self {
+        case .lifestyle: "Lifestyle"
+        case .culture: "Culture"
+        case .pace: "Pace"
+        case .values: "Values"
+        case .environment: "Environment"
+        }
+    }
+}
+
 // MARK: - Exploration (named, repeatable analysis)
 
 struct Exploration: Codable, Identifiable, Hashable {
@@ -238,6 +318,8 @@ struct Exploration: Codable, Identifiable, Hashable {
     let aiSummary: String?
     let vibeTags: [String]?
     let freeText: String?
+    let compassVibes: [String: Double]?
+    let compassConstraints: TripConstraints?
     let createdAt: Date?
     var updatedAt: Date?
 
@@ -249,6 +331,8 @@ struct Exploration: Codable, Identifiable, Hashable {
         case aiSummary = "ai_summary"
         case vibeTags = "vibe_tags"
         case freeText = "free_text"
+        case compassVibes = "compass_vibes"
+        case compassConstraints = "compass_constraints"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -368,6 +452,67 @@ struct CurrentCityInfo: Codable {
     let id: String
     let name: String
     let scores: [String: Double]
+}
+
+// MARK: - Results View Model (unified display model)
+
+/// Normalizes data from `GenerateReportResponse`, `Exploration`, and `CityReport`
+/// into a single shape for `ReportDetailView`.
+struct ResultsViewModel {
+    let title: String
+    let matches: [CityMatch]
+    let currentCityId: String?
+    let currentCityName: String?
+    let aiSummary: String?
+    let createdAt: Date?
+
+    /// Optional exploration reference (enables rename/delete actions in toolbar)
+    let exploration: Exploration?
+
+    /// Source type — controls header label and analytics context
+    let source: Source
+
+    enum Source {
+        case onboarding          // Post-onboarding generation
+        case newExploration      // Post-new-exploration generation
+        case pastExploration     // Viewing a saved Exploration from Discover
+        case legacyReport        // Viewing a legacy CityReport
+    }
+
+    // MARK: - Convenience initializers
+
+    init(from response: GenerateReportResponse, title: String = "City Recommendations", source: Source = .onboarding) {
+        self.title = title
+        self.matches = response.matches
+        self.currentCityId = response.currentCity?.id
+        self.currentCityName = response.currentCity?.name
+        self.aiSummary = nil
+        self.createdAt = nil
+        self.exploration = nil
+        self.source = source
+    }
+
+    init(from exploration: Exploration) {
+        self.title = exploration.title
+        self.matches = exploration.results
+        self.currentCityId = exploration.baselineCityId
+        self.currentCityName = nil  // resolved by the view via CityService
+        self.aiSummary = exploration.aiSummary
+        self.createdAt = exploration.createdAt
+        self.exploration = exploration
+        self.source = .pastExploration
+    }
+
+    init(from report: CityReport) {
+        self.title = "City Recommendations"
+        self.matches = report.results
+        self.currentCityId = report.currentCityId
+        self.currentCityName = nil  // resolved by the view via CityService
+        self.aiSummary = report.aiSummary
+        self.createdAt = report.createdAt
+        self.exploration = nil
+        self.source = .legacyReport
+    }
 }
 
 // MARK: - Saved City

@@ -6,9 +6,10 @@ private enum ExplorationStep: Int, CaseIterable, Hashable {
     case name = 0
     case method = 1
     case cityPicker = 2
-    case preferences = 3
-    case generating = 4
-    case results = 5
+    case tripVibes = 3
+    case constraints = 4
+    case generating = 5
+    case results = 6
 }
 
 // MARK: - New Exploration Flow
@@ -28,6 +29,8 @@ struct NewExplorationFlow: View {
     @State private var selectedCityId: String? = nil
     @State private var selectedCityName: String? = nil
     @State private var preferences: UserPreferences = .defaults
+    @State private var signalWeights: [CompassSignal: Double] = [:]
+    @State private var tripConstraints: TripConstraints = TripConstraints()
     @State private var generatedResponse: GenerateReportResponse? = nil
 
     var body: some View {
@@ -50,8 +53,8 @@ struct NewExplorationFlow: View {
                             if startType == .cityILove {
                                 navigationPath.append(ExplorationStep.cityPicker)
                             } else {
-                                // For vibes/words, skip city picker (coming soon)
-                                navigationPath.append(ExplorationStep.preferences)
+                                // Compass / vibes mode — go straight to trip vibes
+                                navigationPath.append(ExplorationStep.tripVibes)
                             }
                         }
                     )
@@ -60,19 +63,44 @@ struct NewExplorationFlow: View {
                         selectedCityId: $selectedCityId,
                         selectedCityName: $selectedCityName,
                         onContinue: {
-                            navigationPath.append(ExplorationStep.preferences)
+                            // Pre-load signal weights from the selected city
+                            if let cityId = selectedCityId {
+                                Task {
+                                    if let city = await coordinator.cityService.getCityWithScores(cityId: cityId) {
+                                        signalWeights = HeadingEngine.signalWeights(fromCityScores: city.scores)
+                                    }
+                                }
+                            }
+                            navigationPath.append(ExplorationStep.tripVibes)
                         },
                         onSkip: {
                             selectedCityId = nil
                             selectedCityName = nil
-                            navigationPath.append(ExplorationStep.preferences)
+                            navigationPath.append(ExplorationStep.tripVibes)
                         }
                     )
-                case .preferences:
-                    ExplorationPreferencesStepView(
-                        preferences: $preferences,
+                case .tripVibes:
+                    TripVibesView(
+                        signalWeights: $signalWeights,
+                        onContinue: {
+                            navigationPath.append(ExplorationStep.constraints)
+                        },
+                        onBack: {
+                            if !navigationPath.isEmpty {
+                                navigationPath.removeLast()
+                            }
+                        }
+                    )
+                case .constraints:
+                    ConstraintsView(
+                        constraints: $tripConstraints,
                         onContinue: {
                             navigationPath.append(ExplorationStep.generating)
+                        },
+                        onBack: {
+                            if !navigationPath.isEmpty {
+                                navigationPath.removeLast()
+                            }
                         }
                     )
                 case .generating:
@@ -81,8 +109,14 @@ struct NewExplorationFlow: View {
                         startType: startType,
                         baselineCityId: selectedCityId,
                         preferences: preferences,
+                        compassVibes: compassVibesDict,
+                        compassConstraints: tripConstraints.hasAny ? tripConstraints : nil,
                         onComplete: { response in
                             generatedResponse = response
+
+                            // Evolve the user's heading with these trip vibes
+                            Task { await evolveHeading() }
+
                             // Replace generating with results (no back swipe to loading)
                             if !navigationPath.isEmpty {
                                 navigationPath.removeLast()
@@ -108,6 +142,15 @@ struct NewExplorationFlow: View {
             analytics.track("exploration_flow_started", screen: "new_exploration_name", properties: ["source": "modal"])
             // Pre-fill with user's saved preferences if available
             preferences = coordinator.preferences
+            // Pre-load signal weights from saved heading
+            if let savedWeights = coordinator.preferences.signalWeights {
+                signalWeights = HeadingEngine.heading(fromRaw: savedWeights).topSignals.isEmpty
+                    ? [:]
+                    : Dictionary(uniqueKeysWithValues: savedWeights.compactMap { key, value in
+                        guard let signal = CompassSignal(rawValue: key) else { return nil }
+                        return (signal, value)
+                    })
+            }
         }
         .onDisappear {
             if generatedResponse != nil {
@@ -124,14 +167,40 @@ struct NewExplorationFlow: View {
         }
     }
 
+    // MARK: - Helpers
+
+    private var compassVibesDict: [String: Double]? {
+        let active = signalWeights.filter { $0.value > 0 }
+        return active.isEmpty ? nil : Dictionary(uniqueKeysWithValues: active.map { ($0.key.rawValue, $0.value) })
+    }
+
     private var effectiveTitle: String {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
+            // Use heading name if available
+            let heading = HeadingEngine.heading(from: signalWeights)
+            if !heading.topSignals.isEmpty {
+                return "\(heading.emoji) \(heading.name) Trip"
+            }
+            if startType == .vibes {
+                return "Compass Exploration"
+            }
             if let cityName = selectedCityName {
                 return "\(cityName) Exploration"
             }
             return "New Exploration"
         }
         return trimmed
+    }
+
+    /// After a successful exploration, blend trip vibes into the user's persistent heading.
+    private func evolveHeading() async {
+        guard !signalWeights.isEmpty else { return }
+
+        let existing = coordinator.preferences.signalWeights ?? [:]
+        let evolved = HeadingEngine.evolveHeading(existing: existing, tripVibes: signalWeights)
+
+        coordinator.preferences.signalWeights = evolved
+        await coordinator.savePreferences()
     }
 }

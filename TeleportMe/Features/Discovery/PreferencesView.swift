@@ -59,7 +59,7 @@ struct PreferencesView: View {
                     "healthcare": String(format: "%.1f", prefs.healthcarePreference),
                 ])
                 isSaving = true
-                coordinator.advanceOnboarding(from: .preferences)
+                coordinator.advanceOnboarding(from: .constraints)
             }
             .disabled(isSaving)
             .padding(.horizontal, TeleportTheme.Spacing.lg)

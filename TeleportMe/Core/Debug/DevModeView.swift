@@ -112,7 +112,8 @@ struct DevModeView: View {
         case .startType: return "Start Type"
         case .citySearch: return "City Search"
         case .cityBaseline: return "City Baseline"
-        case .preferences: return "Preferences"
+        case .tripVibes: return "Trip Vibes"
+        case .constraints: return "Constraints"
         case .generating: return "Generating"
         case .recommendations: return "Recommendations"
         }
@@ -121,7 +122,7 @@ struct DevModeView: View {
     private func jumpTo(_ step: OnboardingStep) {
         // Pre-populate data for screens that need it
         switch step {
-        case .cityBaseline, .preferences, .generating, .recommendations:
+        case .cityBaseline, .tripVibes, .constraints, .generating, .recommendations:
             if coordinator.selectedCity == nil {
                 loadMockCity()
             }

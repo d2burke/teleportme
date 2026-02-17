@@ -9,6 +9,10 @@ struct ExplorationGeneratingStepView: View {
     let startType: StartType
     let baselineCityId: String?
     let preferences: UserPreferences
+    var vibeTags: [String]? = nil
+    var userVibeTags: [String]? = nil
+    var compassVibes: [String: Double]? = nil
+    var compassConstraints: TripConstraints? = nil
     let onComplete: (GenerateReportResponse) -> Void
     let onError: (String) -> Void
 
@@ -18,13 +22,24 @@ struct ExplorationGeneratingStepView: View {
     @State private var error: String?
     @State private var generationTask: Task<Void, Never>?
 
-    private let statusMessages = [
-        "Analyzing your preferences...",
-        "Scanning 55 cities worldwide...",
-        "Comparing lifestyle metrics...",
-        "Finding your perfect matches...",
-        "Generating personalized insights...",
-    ]
+    private var statusMessages: [String] {
+        if compassVibes != nil {
+            return [
+                "Reading your signal weights...",
+                "Scanning 400+ cities worldwide...",
+                "Matching vibes to city profiles...",
+                "Applying your constraints...",
+                "Generating personalized insights...",
+            ]
+        }
+        return [
+            "Analyzing your preferences...",
+            "Scanning 400+ cities worldwide...",
+            "Comparing lifestyle metrics...",
+            "Finding your perfect matches...",
+            "Generating personalized insights...",
+        ]
+    }
 
     var body: some View {
         VStack(spacing: TeleportTheme.Spacing.xl) {
@@ -98,7 +113,7 @@ struct ExplorationGeneratingStepView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(TeleportTheme.Colors.background.ignoresSafeArea())
+        .background(TeleportTheme.Colors.backgroundElevated.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .task {
@@ -129,6 +144,10 @@ struct ExplorationGeneratingStepView: View {
                 startType: startType,
                 baselineCityId: baselineCityId,
                 preferences: preferences,
+                vibeTags: vibeTags,
+                userVibeTags: userVibeTags,
+                compassVibes: compassVibes,
+                compassConstraints: compassConstraints,
                 userId: userId
             )
 

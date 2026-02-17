@@ -1,0 +1,2305 @@
+[
+  {
+    "name": "Algiers",
+    "state_or_region": "",
+    "country": "Algeria",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Gaborone",
+    "state_or_region": "",
+    "country": "Botswana",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Abidjan",
+    "state_or_region": "",
+    "country": "Côte d'Ivoire",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Cairo",
+    "state_or_region": "",
+    "country": "Egypt",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Addis Ababa",
+    "state_or_region": "",
+    "country": "Ethiopia",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Accra",
+    "state_or_region": "",
+    "country": "Ghana",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Bamako",
+    "state_or_region": "",
+    "country": "Mali",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Casablanca",
+    "state_or_region": "",
+    "country": "Morocco",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Windhoek",
+    "state_or_region": "",
+    "country": "Namibia",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Lagos",
+    "state_or_region": "",
+    "country": "Nigeria",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Kigali",
+    "state_or_region": "",
+    "country": "Rwanda",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Dakar",
+    "state_or_region": "",
+    "country": "Senegal",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Johannesburg",
+    "state_or_region": "",
+    "country": "South Africa",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Dar es Salaam",
+    "state_or_region": "",
+    "country": "Tanzania",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Tunis",
+    "state_or_region": "",
+    "country": "Tunisia",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Kampala",
+    "state_or_region": "",
+    "country": "Uganda",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Lusaka",
+    "state_or_region": "",
+    "country": "Zambia",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Harare",
+    "state_or_region": "",
+    "country": "Zimbabwe",
+    "continent": "Africa",
+    "source_file": "Africa"
+  },
+  {
+    "name": "Dhaka",
+    "state_or_region": "",
+    "country": "Bangladesh",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Thimphu",
+    "state_or_region": "",
+    "country": "Bhutan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Beijing",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Chengdu",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Chongqing",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Dalian",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Dongguan",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Guangzhou",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Hangzhou",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Jinan",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Nanjing",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Qingdao",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Shanghai",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Shenyang",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Shenzhen",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Suzhou",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Wuhan",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Xi'an",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Zhengzhou",
+    "state_or_region": "",
+    "country": "China",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Suva",
+    "state_or_region": "",
+    "country": "Fiji",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Ahmedabad",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Bengaluru",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Chennai",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Delhi",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Hyderabad",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Kolkata",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Mumbai",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Surat",
+    "state_or_region": "",
+    "country": "India",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Jakarta",
+    "state_or_region": "",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Medan",
+    "state_or_region": "",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Baghdad",
+    "state_or_region": "",
+    "country": "Iraq",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Almaty",
+    "state_or_region": "",
+    "country": "Kazakhstan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Bishkek",
+    "state_or_region": "",
+    "country": "Kyrgyzstan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Yangon",
+    "state_or_region": "",
+    "country": "Myanmar",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Wellington",
+    "state_or_region": "",
+    "country": "New Zealand",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Faisalabad",
+    "state_or_region": "",
+    "country": "Pakistan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Karachi",
+    "state_or_region": "",
+    "country": "Pakistan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Lahore",
+    "state_or_region": "",
+    "country": "Pakistan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Peshawar",
+    "state_or_region": "",
+    "country": "Pakistan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Port Moresby",
+    "state_or_region": "",
+    "country": "Papua New Guinea",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Manila",
+    "state_or_region": "",
+    "country": "Philippines",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Apia",
+    "state_or_region": "",
+    "country": "Samoa",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Riyadh",
+    "state_or_region": "",
+    "country": "Saudi Arabia",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Busan",
+    "state_or_region": "",
+    "country": "South Korea",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Taichung",
+    "state_or_region": "",
+    "country": "Taiwan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Dushanbe",
+    "state_or_region": "",
+    "country": "Tajikistan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Ashgabat",
+    "state_or_region": "",
+    "country": "Turkmenistan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Tashkent",
+    "state_or_region": "",
+    "country": "Uzbekistan",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Ho Chi Minh City",
+    "state_or_region": "",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "source_file": "Asia"
+  },
+  {
+    "name": "Santiago de los Caballeros",
+    "state_or_region": "",
+    "country": "Dominican Republic",
+    "continent": "Caribbean",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Santo Domingo",
+    "state_or_region": "",
+    "country": "Dominican Republic",
+    "continent": "Caribbean",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Belize City",
+    "state_or_region": "",
+    "country": "Belize",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "San José",
+    "state_or_region": "",
+    "country": "Costa Rica",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "San Salvador",
+    "state_or_region": "",
+    "country": "El Salvador",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Santa Ana",
+    "state_or_region": "",
+    "country": "El Salvador",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Chimaltenango",
+    "state_or_region": "",
+    "country": "Guatemala",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Guatemala City",
+    "state_or_region": "",
+    "country": "Guatemala",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Comayagua",
+    "state_or_region": "",
+    "country": "Honduras",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "La Ceiba",
+    "state_or_region": "",
+    "country": "Honduras",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "San Pedro Sula",
+    "state_or_region": "",
+    "country": "Honduras",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Tegucigalpa",
+    "state_or_region": "",
+    "country": "Honduras",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "León",
+    "state_or_region": "",
+    "country": "Nicaragua",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Managua",
+    "state_or_region": "",
+    "country": "Nicaragua",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Panama City",
+    "state_or_region": "",
+    "country": "Panama",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "San Miguelito",
+    "state_or_region": "",
+    "country": "Panama",
+    "continent": "Central America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Tirana",
+    "state_or_region": "",
+    "country": "Albania",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Graz",
+    "state_or_region": "",
+    "country": "Austria",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Baku",
+    "state_or_region": "",
+    "country": "Azerbaijan",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Minsk",
+    "state_or_region": "",
+    "country": "Belarus",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Antwerp",
+    "state_or_region": "",
+    "country": "Belgium",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Brussels",
+    "state_or_region": "",
+    "country": "Belgium",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Plovdiv",
+    "state_or_region": "",
+    "country": "Bulgaria",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Sofia",
+    "state_or_region": "",
+    "country": "Bulgaria",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Varna",
+    "state_or_region": "",
+    "country": "Bulgaria",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Zagreb",
+    "state_or_region": "",
+    "country": "Croatia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Lyon",
+    "state_or_region": "",
+    "country": "France",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Marseille",
+    "state_or_region": "",
+    "country": "France",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Montpellier",
+    "state_or_region": "",
+    "country": "France",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Nantes",
+    "state_or_region": "",
+    "country": "France",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Tbilisi",
+    "state_or_region": "",
+    "country": "Georgia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Bremen",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Dortmund",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Dresden",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Düsseldorf",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Frankfurt am Main",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Hamburg",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Leipzig",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Nuremberg",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Stuttgart",
+    "state_or_region": "",
+    "country": "Germany",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Athens",
+    "state_or_region": "",
+    "country": "Greece",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Budapest",
+    "state_or_region": "",
+    "country": "Hungary",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Bologna",
+    "state_or_region": "",
+    "country": "Italy",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Genoa",
+    "state_or_region": "",
+    "country": "Italy",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Milan",
+    "state_or_region": "",
+    "country": "Italy",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Naples",
+    "state_or_region": "",
+    "country": "Italy",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Palermo",
+    "state_or_region": "",
+    "country": "Italy",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Rome",
+    "state_or_region": "",
+    "country": "Italy",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Turin",
+    "state_or_region": "",
+    "country": "Italy",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Astana",
+    "state_or_region": "",
+    "country": "Kazakhstan",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Shymkent",
+    "state_or_region": "",
+    "country": "Kazakhstan",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Riga",
+    "state_or_region": "",
+    "country": "Latvia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Kaunas",
+    "state_or_region": "",
+    "country": "Lithuania",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Vilnius",
+    "state_or_region": "",
+    "country": "Lithuania",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Luxembourg City",
+    "state_or_region": "",
+    "country": "Luxembourg",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Chisinau",
+    "state_or_region": "",
+    "country": "Moldova",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Monaco",
+    "state_or_region": "",
+    "country": "Monaco",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Rotterdam",
+    "state_or_region": "",
+    "country": "Netherlands",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "The Hague",
+    "state_or_region": "",
+    "country": "Netherlands",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Skopje",
+    "state_or_region": "",
+    "country": "North Macedonia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Oslo",
+    "state_or_region": "",
+    "country": "Norway",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Kraków",
+    "state_or_region": "",
+    "country": "Poland",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Poznań",
+    "state_or_region": "",
+    "country": "Poland",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Wrocław",
+    "state_or_region": "",
+    "country": "Poland",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Łódź",
+    "state_or_region": "",
+    "country": "Poland",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Porto",
+    "state_or_region": "",
+    "country": "Portugal",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Bucharest",
+    "state_or_region": "",
+    "country": "Romania",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Chelyabinsk",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Kazan",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Krasnoyarsk",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Moscow",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Nizhny Novgorod",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Novosibirsk",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Omsk",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Saint Petersburg",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Samara",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Yekaterinburg",
+    "state_or_region": "",
+    "country": "Russia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Belgrade",
+    "state_or_region": "",
+    "country": "Serbia",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Madrid",
+    "state_or_region": "",
+    "country": "Spain",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Málaga",
+    "state_or_region": "",
+    "country": "Spain",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Seville",
+    "state_or_region": "",
+    "country": "Spain",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Valencia",
+    "state_or_region": "",
+    "country": "Spain",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Zaragoza",
+    "state_or_region": "",
+    "country": "Spain",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Gothenburg",
+    "state_or_region": "",
+    "country": "Sweden",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Malmö",
+    "state_or_region": "",
+    "country": "Sweden",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Kharkiv",
+    "state_or_region": "",
+    "country": "Ukraine",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Kyiv",
+    "state_or_region": "",
+    "country": "Ukraine",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Lviv",
+    "state_or_region": "",
+    "country": "Ukraine",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Birmingham",
+    "state_or_region": "",
+    "country": "United Kingdom",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Bradford",
+    "state_or_region": "",
+    "country": "United Kingdom",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Glasgow",
+    "state_or_region": "",
+    "country": "United Kingdom",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Manchester",
+    "state_or_region": "",
+    "country": "United Kingdom",
+    "continent": "Europe",
+    "source_file": "Europe.md"
+  },
+  {
+    "name": "Tehran",
+    "state_or_region": "",
+    "country": "Iran",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Amman",
+    "state_or_region": "",
+    "country": "Jordan",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Beirut",
+    "state_or_region": "",
+    "country": "Lebanon",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Muscat",
+    "state_or_region": "",
+    "country": "Oman",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Doha",
+    "state_or_region": "",
+    "country": "Qatar",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Jeddah",
+    "state_or_region": "",
+    "country": "Saudi Arabia",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Istanbul",
+    "state_or_region": "",
+    "country": "Turkey",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Abu Dhabi",
+    "state_or_region": "",
+    "country": "UAE",
+    "continent": "Middle East",
+    "source_file": "MiddleEast"
+  },
+  {
+    "name": "Brampton",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Calgary",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Edmonton",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Halifax",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Hamilton",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Kitchener",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Laval",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Mississauga",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Ottawa",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Quebec City",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Regina",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Saskatoon",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "St. John's",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Surrey",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Victoria",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Winnipeg",
+    "state_or_region": "",
+    "country": "Canada",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Guadalajara",
+    "state_or_region": "",
+    "country": "Mexico",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Monterrey",
+    "state_or_region": "",
+    "country": "Mexico",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Nezahualcóyotl",
+    "state_or_region": "",
+    "country": "Mexico",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Puebla",
+    "state_or_region": "",
+    "country": "Mexico",
+    "continent": "North America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Albuquerque",
+    "state_or_region": "New Mexico",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Anaheim",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Anchorage",
+    "state_or_region": "Alaska",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Arlington",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Atlanta",
+    "state_or_region": "Georgia",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Aurora",
+    "state_or_region": "Colorado",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Bakersfield",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Baltimore",
+    "state_or_region": "Maryland",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Baton Rouge",
+    "state_or_region": "Louisiana",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Boise",
+    "state_or_region": "Idaho",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Charlotte",
+    "state_or_region": "North Carolina",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Chesapeake",
+    "state_or_region": "Virginia",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Chula Vista",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Cincinnati",
+    "state_or_region": "Ohio",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Cleveland",
+    "state_or_region": "Ohio",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Colorado Springs",
+    "state_or_region": "Colorado",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Columbus",
+    "state_or_region": "Ohio",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Corpus Christi",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Dallas",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Des Moines",
+    "state_or_region": "Iowa",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Detroit",
+    "state_or_region": "Michigan",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Durham",
+    "state_or_region": "North Carolina",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "El Paso",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Fort Wayne",
+    "state_or_region": "Indiana",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Fort Worth",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Fremont",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Fresno",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Garland",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Gilbert",
+    "state_or_region": "Arizona",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Glendale",
+    "state_or_region": "Arizona",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Greensboro",
+    "state_or_region": "North Carolina",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Henderson",
+    "state_or_region": "Nevada",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Hialeah",
+    "state_or_region": "Florida",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Honolulu",
+    "state_or_region": "Hawaii",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Houston",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Indianapolis",
+    "state_or_region": "Indiana",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Irvine",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Irving",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Jacksonville",
+    "state_or_region": "Florida",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Jersey City",
+    "state_or_region": "New Jersey",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Kansas City",
+    "state_or_region": "Missouri",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Laredo",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Las Vegas",
+    "state_or_region": "Nevada",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Lexington",
+    "state_or_region": "Kentucky",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Lincoln",
+    "state_or_region": "Nebraska",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Long Beach",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Louisville",
+    "state_or_region": "Kentucky",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Lubbock",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Madison",
+    "state_or_region": "Wisconsin",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Memphis",
+    "state_or_region": "Tennessee",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Mesa",
+    "state_or_region": "Arizona",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Milwaukee",
+    "state_or_region": "Wisconsin",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Minneapolis",
+    "state_or_region": "Minnesota",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Modesto",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "New Orleans",
+    "state_or_region": "Louisiana",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Newark",
+    "state_or_region": "New Jersey",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Norfolk",
+    "state_or_region": "Virginia",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "North Las Vegas",
+    "state_or_region": "Nevada",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Oakland",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Oklahoma City",
+    "state_or_region": "Oklahoma",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Omaha",
+    "state_or_region": "Nebraska",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Orlando",
+    "state_or_region": "Florida",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Philadelphia",
+    "state_or_region": "Pennsylvania",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Phoenix",
+    "state_or_region": "Arizona",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Pittsburgh",
+    "state_or_region": "Pennsylvania",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Plano",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Raleigh",
+    "state_or_region": "North Carolina",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Reno",
+    "state_or_region": "Nevada",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Richmond",
+    "state_or_region": "Virginia",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Riverside",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Sacramento",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Saint Paul",
+    "state_or_region": "Minnesota",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "San Antonio",
+    "state_or_region": "Texas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "San Bernardino",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "San Diego",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "San Jose",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Spokane",
+    "state_or_region": "Washington",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "St. Louis",
+    "state_or_region": "Missouri",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "St. Petersburg",
+    "state_or_region": "Florida",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Stockton",
+    "state_or_region": "California",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Tacoma",
+    "state_or_region": "Washington",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Tampa",
+    "state_or_region": "Florida",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Toledo",
+    "state_or_region": "Ohio",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Tucson",
+    "state_or_region": "Arizona",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Tulsa",
+    "state_or_region": "Oklahoma",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Virginia Beach",
+    "state_or_region": "Virginia",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Washington",
+    "state_or_region": "District of Columbia",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Wichita",
+    "state_or_region": "Kansas",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Winston-Salem",
+    "state_or_region": "North Carolina",
+    "country": "United States",
+    "continent": "North America",
+    "source_file": "USA.md"
+  },
+  {
+    "name": "Adelaide",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Albury",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Ballarat",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Bendigo",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Brisbane",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Bundaberg",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Cairns",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Canberra",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Coffs Harbour",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Darwin",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Geelong",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Gladstone",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Gold Coast",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Hervey Bay",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Hobart",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Launceston",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Mackay",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Maitland",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Newcastle",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Orange",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Perth",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Rockhampton",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Sunshine Coast",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Tamworth",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Toowoomba",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Townsville",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Wagga Wagga",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Wollongong",
+    "state_or_region": "",
+    "country": "Australia",
+    "continent": "Oceania",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Córdoba",
+    "state_or_region": "",
+    "country": "Argentina",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Rosario",
+    "state_or_region": "",
+    "country": "Argentina",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Santa Cruz de la Sierra",
+    "state_or_region": "",
+    "country": "Bolivia",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Belo Horizonte",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Brasília",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Campinas",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Curitiba",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Fortaleza",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Manaus",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Porto Alegre",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Recife",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Rio de Janeiro",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Salvador",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "São Luís",
+    "state_or_region": "",
+    "country": "Brazil",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Valparaíso",
+    "state_or_region": "",
+    "country": "Chile",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Cali",
+    "state_or_region": "",
+    "country": "Colombia",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Guayaquil",
+    "state_or_region": "",
+    "country": "Ecuador",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Quito",
+    "state_or_region": "",
+    "country": "Ecuador",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Asunción",
+    "state_or_region": "",
+    "country": "Paraguay",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Callao",
+    "state_or_region": "",
+    "country": "Peru",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Lima",
+    "state_or_region": "",
+    "country": "Peru",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Montevideo",
+    "state_or_region": "",
+    "country": "Uruguay",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Barquisimeto",
+    "state_or_region": "",
+    "country": "Venezuela",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Caracas",
+    "state_or_region": "",
+    "country": "Venezuela",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  },
+  {
+    "name": "Maracaibo",
+    "state_or_region": "",
+    "country": "Venezuela",
+    "continent": "South America",
+    "source_file": "Americas+Australia.csv"
+  }
+]

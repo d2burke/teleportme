@@ -12,8 +12,11 @@ struct EditProfileView: View {
     @State private var selectedCityId: String? = nil
     @State private var selectedCityName: String? = nil
     @State private var preferences: UserPreferences = .defaults
+    @State private var selectedVibeIds: Set<String> = []
+    @State private var allVibeTags: [VibeTag] = []
     @State private var isSaving = false
     @State private var showCityPicker = false
+    @State private var showVibeEditor = false
 
     var body: some View {
         NavigationStack {
@@ -25,6 +28,12 @@ struct EditProfileView: View {
                     // Home City
                     homeCitySection
 
+                    // Your Heading (Compass)
+                    headingSection
+
+                    // Your Vibes
+                    vibesSection
+
                     // Default Preferences
                     preferencesSection
                 }
@@ -32,7 +41,7 @@ struct EditProfileView: View {
                 .padding(.vertical, TeleportTheme.Spacing.md)
                 .padding(.bottom, 100)
             }
-            .background(TeleportTheme.Colors.background)
+            .background(TeleportTheme.Colors.backgroundElevated)
             .navigationTitle("Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -51,7 +60,7 @@ struct EditProfileView: View {
                 .padding(.bottom, TeleportTheme.Spacing.lg)
                 .background(
                     LinearGradient(
-                        colors: [TeleportTheme.Colors.background.opacity(0), TeleportTheme.Colors.background],
+                        colors: [TeleportTheme.Colors.backgroundElevated.opacity(0), TeleportTheme.Colors.backgroundElevated],
                         startPoint: .top,
                         endPoint: .center
                     )
@@ -62,6 +71,24 @@ struct EditProfileView: View {
                     selectedCityId: $selectedCityId,
                     selectedCityName: $selectedCityName
                 )
+            }
+            .sheet(isPresented: $showVibeEditor) {
+                NavigationStack {
+                    VibeSelectionView(
+                        selectedVibeIds: $selectedVibeIds,
+                        onContinue: {
+                            showVibeEditor = false
+                        }
+                    )
+                    .navigationTitle("Edit Vibes")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") { showVibeEditor = false }
+                                .foregroundStyle(TeleportTheme.Colors.textSecondary)
+                        }
+                    }
+                }
             }
             .onAppear {
                 screenEnteredAt = Date()
@@ -152,6 +179,205 @@ struct EditProfileView: View {
         }
     }
 
+    // MARK: - Heading Section
+
+    private var headingSection: some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+            Text("YOUR HEADING")
+                .font(TeleportTheme.Typography.sectionHeader())
+                .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                .tracking(1.5)
+
+            if let weights = coordinator.preferences.signalWeights, !weights.isEmpty {
+                let heading = HeadingEngine.heading(fromRaw: weights)
+
+                VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
+                    // Heading badge
+                    HStack(spacing: TeleportTheme.Spacing.md) {
+                        Text(heading.emoji)
+                            .font(.system(size: 28))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(heading.name)
+                                .font(TeleportTheme.Typography.cardTitle(17))
+                                .foregroundStyle(TeleportTheme.Colors.textPrimary)
+
+                            if !heading.topSignals.isEmpty {
+                                HStack(spacing: TeleportTheme.Spacing.xs) {
+                                    ForEach(heading.topSignals) { signal in
+                                        HStack(spacing: 3) {
+                                            Text(signal.emoji)
+                                                .font(.system(size: 11))
+                                            Text(signal.label)
+                                                .font(TeleportTheme.Typography.caption(11))
+                                                .foregroundStyle(signal.color)
+                                        }
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(signal.color.opacity(0.12))
+                                        .clipShape(Capsule())
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer()
+                    }
+
+                    // Reset button
+                    Button {
+                        analytics.trackButtonTap("reset_heading", screen: "edit_profile")
+                        coordinator.preferences.signalWeights = nil
+                    } label: {
+                        HStack(spacing: TeleportTheme.Spacing.xs) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 12))
+                            Text("Reset Heading")
+                                .font(TeleportTheme.Typography.caption(13))
+                        }
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(TeleportTheme.Spacing.md)
+                .background(TeleportTheme.Colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
+                .overlay {
+                    RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium)
+                        .strokeBorder(TeleportTheme.Colors.border, lineWidth: 1)
+                }
+            } else {
+                // No heading yet
+                HStack(spacing: TeleportTheme.Spacing.md) {
+                    Image(systemName: "safari")
+                        .font(.system(size: 20))
+                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("No heading yet")
+                            .font(TeleportTheme.Typography.body())
+                            .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                        Text("Create an exploration to discover your heading")
+                            .font(TeleportTheme.Typography.caption(12))
+                            .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                    }
+
+                    Spacer()
+                }
+                .padding(TeleportTheme.Spacing.md)
+                .background(TeleportTheme.Colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
+                .overlay {
+                    RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium)
+                        .strokeBorder(TeleportTheme.Colors.border, lineWidth: 1)
+                }
+            }
+        }
+    }
+
+    // MARK: - Vibes Section
+
+    private var vibesSection: some View {
+        VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+            Text("YOUR VIBES")
+                .font(TeleportTheme.Typography.sectionHeader())
+                .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                .tracking(1.5)
+
+            Text("These vibes will be pre-filled when you create new explorations.")
+                .font(TeleportTheme.Typography.caption(13))
+                .foregroundStyle(TeleportTheme.Colors.textTertiary)
+
+            if selectedVibeIds.isEmpty {
+                // Empty state
+                Button {
+                    analytics.trackButtonTap("add_vibes", screen: "edit_profile")
+                    showVibeEditor = true
+                } label: {
+                    HStack(spacing: TeleportTheme.Spacing.md) {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 20))
+                            .foregroundStyle(TeleportTheme.Colors.accent)
+
+                        Text("No vibes selected yet")
+                            .font(TeleportTheme.Typography.body())
+                            .foregroundStyle(TeleportTheme.Colors.textTertiary)
+
+                        Spacer()
+
+                        Text("Add Vibes")
+                            .font(TeleportTheme.Typography.caption(13))
+                            .foregroundStyle(TeleportTheme.Colors.accent)
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12))
+                            .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                    }
+                    .padding(TeleportTheme.Spacing.md)
+                    .background(TeleportTheme.Colors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium)
+                            .strokeBorder(TeleportTheme.Colors.border, lineWidth: 1)
+                    }
+                }
+                .buttonStyle(.plain)
+            } else {
+                // Selected vibes display
+                VStack(alignment: .leading, spacing: TeleportTheme.Spacing.md) {
+                    FlowLayout(spacing: TeleportTheme.Spacing.sm) {
+                        ForEach(selectedVibeDisplayTags, id: \.id) { tag in
+                            HStack(spacing: 4) {
+                                Text("\(tag.emoji ?? "") \(tag.name)")
+                                    .font(TeleportTheme.Typography.caption(14))
+
+                                Button {
+                                    selectedVibeIds.remove(tag.id)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(TeleportTheme.Colors.textTertiary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .foregroundStyle(TeleportTheme.Colors.backgroundElevated)
+                            .padding(.horizontal, TeleportTheme.Spacing.md)
+                            .padding(.vertical, TeleportTheme.Spacing.sm)
+                            .background(TeleportTheme.Colors.accent)
+                            .clipShape(Capsule())
+                        }
+                    }
+
+                    Button {
+                        analytics.trackButtonTap("edit_vibes", screen: "edit_profile")
+                        showVibeEditor = true
+                    } label: {
+                        HStack(spacing: TeleportTheme.Spacing.xs) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 14))
+                            Text("Edit Vibes")
+                                .font(TeleportTheme.Typography.caption(14))
+                        }
+                        .foregroundStyle(TeleportTheme.Colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(TeleportTheme.Spacing.md)
+                .background(TeleportTheme.Colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
+                .overlay {
+                    RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium)
+                        .strokeBorder(TeleportTheme.Colors.border, lineWidth: 1)
+                }
+            }
+        }
+    }
+
+    /// Resolves vibe IDs to full VibeTag objects for display.
+    private var selectedVibeDisplayTags: [VibeTag] {
+        allVibeTags.filter { selectedVibeIds.contains($0.id) }
+    }
+
     // MARK: - Preferences Section
 
     private var preferencesSection: some View {
@@ -180,11 +406,28 @@ struct EditProfileView: View {
             selectedCityId = cityId
             selectedCityName = coordinator.cityService.allCities.first { $0.id == cityId }?.name
         }
+
+        // Load saved vibes
+        if let savedVibes = coordinator.preferences.selectedVibeTags {
+            selectedVibeIds = Set(savedVibes)
+        }
+
+        // Fetch all vibe tags for display names/emoji
+        Task {
+            do {
+                allVibeTags = try await coordinator.explorationService.fetchVibeTags()
+            } catch {
+                print("Failed to load vibe tags for profile: \(error)")
+            }
+        }
     }
 
     private func saveChanges() async {
         isSaving = true
         defer { isSaving = false }
+
+        // Update vibes on preferences
+        preferences.selectedVibeTags = selectedVibeIds.isEmpty ? nil : Array(selectedVibeIds)
 
         // Update preferences on coordinator
         coordinator.preferences = preferences
@@ -264,7 +507,7 @@ private struct CityPickerSheet: View {
                 }
                 .padding(.top, TeleportTheme.Spacing.md)
             }
-            .background(TeleportTheme.Colors.background)
+            .background(TeleportTheme.Colors.backgroundElevated)
             .navigationTitle("Choose City")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

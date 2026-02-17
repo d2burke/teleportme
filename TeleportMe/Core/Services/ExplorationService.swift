@@ -24,6 +24,10 @@ final class ExplorationService {
         startType: StartType = .cityILove,
         baselineCityId: String?,
         preferences: UserPreferences,
+        vibeTags: [String]? = nil,
+        userVibeTags: [String]? = nil,
+        compassVibes: [String: Double]? = nil,
+        compassConstraints: TripConstraints? = nil,
         userId: String? = nil
     ) async throws -> GenerateReportResponse {
         isGenerating = true
@@ -43,7 +47,11 @@ final class ExplorationService {
                     safety: preferences.safetyPreference,
                     commute: preferences.commutePreference,
                     healthcare: preferences.healthcarePreference
-                )
+                ),
+                vibeTags: vibeTags,
+                userVibeTags: userVibeTags,
+                compassVibes: compassVibes,
+                compassConstraints: compassConstraints
             )
 
             let response: GenerateReportResponse = try await withTimeout(seconds: 30) {
@@ -167,6 +175,21 @@ final class ExplorationService {
         }
     }
 
+    // MARK: - Vibe Tags
+
+    /// Fetches all available vibe tags from Supabase.
+    func fetchVibeTags() async throws -> [VibeTag] {
+        try await withTimeout(seconds: 10) {
+            try await self.supabase
+                .from("vibe_tags")
+                .select()
+                .order("category")
+                .order("name")
+                .execute()
+                .value
+        }
+    }
+
     // MARK: - Private Helpers
 
     private func fetchExplorationsFromNetwork(userId: String) async throws -> [Exploration] {
@@ -193,6 +216,37 @@ final class ExplorationService {
             print("Failed to refresh explorations after mutation: \(error)")
         }
     }
+
+    // MARK: - Heading Persistence
+
+    /// Saves signal weights to user_preferences for heading persistence.
+    func saveSignalWeights(_ weights: [String: Double], userId: String) async throws {
+        try await supabase
+            .from("user_preferences")
+            .update(["signal_weights": weights])
+            .eq("user_id", value: userId)
+            .execute()
+    }
+
+    /// Fetches saved signal weights from user_preferences.
+    func fetchSignalWeights(userId: String) async throws -> [String: Double]? {
+        struct Row: Decodable {
+            let signalWeights: [String: Double]?
+            enum CodingKeys: String, CodingKey {
+                case signalWeights = "signal_weights"
+            }
+        }
+
+        let result: Row? = try await supabase
+            .from("user_preferences")
+            .select("signal_weights")
+            .eq("user_id", value: userId)
+            .single()
+            .execute()
+            .value
+
+        return result?.signalWeights
+    }
 }
 
 // MARK: - Exploration Request Body (for edge function)
@@ -202,6 +256,10 @@ private struct ExplorationRequest: Encodable {
     let startType: String
     let title: String?
     let preferences: Preferences
+    let vibeTags: [String]?
+    let userVibeTags: [String]?
+    let compassVibes: [String: Double]?
+    let compassConstraints: TripConstraints?
 
     struct Preferences: Encodable {
         let cost: Double
@@ -223,5 +281,9 @@ private struct ExplorationRequest: Encodable {
         case currentCityId = "current_city_id"
         case startType = "start_type"
         case title
+        case vibeTags = "vibe_tags"
+        case userVibeTags = "user_vibe_tags"
+        case compassVibes = "compass_vibes"
+        case compassConstraints = "compass_constraints"
     }
 }

@@ -39,14 +39,23 @@ struct TeleportMeApp: App {
                 coord.navigationPath.append(OnboardingStep.startType)
                 coord.navigationPath.append(OnboardingStep.citySearch)
                 coord.navigationPath.append(OnboardingStep.cityBaseline)
-            case "preferences":
+            case "tripVibes":
                 coord = PreviewHelpers.makeCoordinator()
                 coord.currentScreen = .onboarding
                 coord.navigationPath.append(OnboardingStep.signUp)
                 coord.navigationPath.append(OnboardingStep.startType)
                 coord.navigationPath.append(OnboardingStep.citySearch)
                 coord.navigationPath.append(OnboardingStep.cityBaseline)
-                coord.navigationPath.append(OnboardingStep.preferences)
+                coord.navigationPath.append(OnboardingStep.tripVibes)
+            case "constraints":
+                coord = PreviewHelpers.makeCoordinator()
+                coord.currentScreen = .onboarding
+                coord.navigationPath.append(OnboardingStep.signUp)
+                coord.navigationPath.append(OnboardingStep.startType)
+                coord.navigationPath.append(OnboardingStep.citySearch)
+                coord.navigationPath.append(OnboardingStep.cityBaseline)
+                coord.navigationPath.append(OnboardingStep.tripVibes)
+                coord.navigationPath.append(OnboardingStep.constraints)
             case "recommendations":
                 coord = PreviewHelpers.makeCoordinatorWithReport()
                 coord.currentScreen = .onboarding
@@ -54,7 +63,8 @@ struct TeleportMeApp: App {
                 coord.navigationPath.append(OnboardingStep.startType)
                 coord.navigationPath.append(OnboardingStep.citySearch)
                 coord.navigationPath.append(OnboardingStep.cityBaseline)
-                coord.navigationPath.append(OnboardingStep.preferences)
+                coord.navigationPath.append(OnboardingStep.tripVibes)
+                coord.navigationPath.append(OnboardingStep.constraints)
                 coord.navigationPath.append(OnboardingStep.recommendations)
             case "generating":
                 coord = PreviewHelpers.makeCoordinator()
@@ -63,7 +73,8 @@ struct TeleportMeApp: App {
                 coord.navigationPath.append(OnboardingStep.startType)
                 coord.navigationPath.append(OnboardingStep.citySearch)
                 coord.navigationPath.append(OnboardingStep.cityBaseline)
-                coord.navigationPath.append(OnboardingStep.preferences)
+                coord.navigationPath.append(OnboardingStep.tripVibes)
+                coord.navigationPath.append(OnboardingStep.constraints)
                 coord.navigationPath.append(OnboardingStep.generating)
             case "main":
                 coord = PreviewHelpers.makeCoordinatorWithReport()

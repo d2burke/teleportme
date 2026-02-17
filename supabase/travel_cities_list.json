@@ -1,0 +1,938 @@
+[
+  {
+    "name": "Chiang Mai",
+    "country": "Thailand",
+    "continent": "Asia",
+    "why": "Ancient walled city with 300+ temples, legendary street food, and a thriving digital nomad scene nestled in misty northern mountains."
+  },
+  {
+    "name": "Siem Reap",
+    "country": "Cambodia",
+    "continent": "Asia",
+    "why": "Gateway to the magnificent Angkor Wat temple complex, one of the most awe-inspiring archaeological sites on Earth."
+  },
+  {
+    "name": "Luang Prabang",
+    "country": "Laos",
+    "continent": "Asia",
+    "why": "UNESCO-listed riverside town where saffron-robed monks collect morning alms past French colonial architecture and gilded temples."
+  },
+  {
+    "name": "Hoi An",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "why": "Enchanting lantern-lit ancient town with world-class street food, custom tailoring, and a beautifully preserved trading port heritage."
+  },
+  {
+    "name": "Da Nang",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "why": "Coastal city with stunning Marble Mountains, the iconic Golden Bridge, and some of Vietnam's best beaches."
+  },
+  {
+    "name": "Hanoi",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "why": "Vietnam's captivating capital where thousand-year-old temples sit alongside French Quarter cafes and the world's best pho."
+  },
+  {
+    "name": "Penang",
+    "country": "Malaysia",
+    "continent": "Asia",
+    "why": "Malaysia's food capital with extraordinary street art, colonial Georgetown, and a mesmerizing fusion of Malay, Chinese, and Indian cultures."
+  },
+  {
+    "name": "Langkawi",
+    "country": "Malaysia",
+    "continent": "Asia",
+    "why": "Duty-free island paradise with dramatic limestone formations, sky bridges, pristine beaches, and lush mangrove forests."
+  },
+  {
+    "name": "Phuket",
+    "country": "Thailand",
+    "continent": "Asia",
+    "why": "Thailand's largest island offers world-class beaches, vibrant nightlife, ornate temples, and easy access to stunning Andaman Sea islands."
+  },
+  {
+    "name": "Krabi",
+    "country": "Thailand",
+    "continent": "Asia",
+    "why": "Dramatic karst cliffs rising from turquoise waters, island-hopping paradise, and world-class rock climbing at Railay Beach."
+  },
+  {
+    "name": "Koh Samui",
+    "country": "Thailand",
+    "continent": "Asia",
+    "why": "Tropical island blending luxury resorts with laid-back beach culture, wellness retreats, and vibrant night markets."
+  },
+  {
+    "name": "Ubud",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "why": "Bali's cultural heart surrounded by emerald rice terraces, ancient temples, world-class yoga retreats, and artisan workshops."
+  },
+  {
+    "name": "Yogyakarta",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "why": "Java's cultural capital near the colossal Borobudur and Prambanan temples, with a thriving arts scene and royal Kraton palace."
+  },
+  {
+    "name": "Bandung",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "why": "Cool highland city with Art Deco architecture, volcanic crater lakes, tea plantations, and Indonesia's creative fashion hub."
+  },
+  {
+    "name": "Cebu",
+    "country": "Philippines",
+    "continent": "Asia",
+    "why": "Historic island city with whale shark encounters, stunning waterfalls, and gateway to the Philippines' most beautiful beaches."
+  },
+  {
+    "name": "Boracay",
+    "country": "Philippines",
+    "continent": "Asia",
+    "why": "Tiny island famous for its powdery White Beach, crystal-clear waters, and spectacular sunsets that draw travelers worldwide."
+  },
+  {
+    "name": "Palawan",
+    "country": "Philippines",
+    "continent": "Asia",
+    "why": "Repeatedly voted the world's best island, with underground rivers, hidden lagoons, and the jaw-dropping limestone seascapes of El Nido."
+  },
+  {
+    "name": "Vientiane",
+    "country": "Laos",
+    "continent": "Asia",
+    "why": "Southeast Asia's most relaxed capital, with golden stupas along the Mekong, French-Lao fusion cuisine, and timeless charm."
+  },
+  {
+    "name": "Phnom Penh",
+    "country": "Cambodia",
+    "continent": "Asia",
+    "why": "Cambodia's rapidly evolving capital blending royal palaces and moving Khmer history with a booming riverside food and bar scene."
+  },
+  {
+    "name": "Nha Trang",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "why": "Vietnam's premier beach resort city with ancient Cham towers, island-hopping tours, and vibrant seafood dining."
+  },
+  {
+    "name": "Dalat",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "why": "Vietnam's misty highland retreat with French villas, flower gardens, coffee plantations, and adventure sports amid pine forests."
+  },
+  {
+    "name": "Malacca",
+    "country": "Malaysia",
+    "continent": "Asia",
+    "why": "UNESCO-listed Straits settlement layering Portuguese, Dutch, and British colonial history with legendary Peranakan Nyonya cuisine."
+  },
+  {
+    "name": "Ipoh",
+    "country": "Malaysia",
+    "continent": "Asia",
+    "why": "Charming tin-mining heritage town famous for its white coffee, cave temples, street art, and incredible Cantonese food."
+  },
+  {
+    "name": "Cameron Highlands",
+    "country": "Malaysia",
+    "continent": "Asia",
+    "why": "Cool mountain retreat with rolling tea plantations, strawberry farms, mossy forests, and a refreshing escape from tropical heat."
+  },
+  {
+    "name": "Lombok",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "why": "Bali's quieter neighbor with world-class surf breaks, the majestic Mount Rinjani trek, and pristine Gili island beaches."
+  },
+  {
+    "name": "Flores",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "why": "Remote Indonesian island with the tri-colored Kelimutu crater lakes, Komodo dragon territory, and spectacular diving."
+  },
+  {
+    "name": "Siargao",
+    "country": "Philippines",
+    "continent": "Asia",
+    "why": "The Philippines' surfing capital with a laid-back island vibe, turquoise lagoons, and palm-fringed rock pools."
+  },
+  {
+    "name": "Battambang",
+    "country": "Cambodia",
+    "continent": "Asia",
+    "why": "Cambodia's charming colonial riverside town with the famous bamboo train, ancient temples, and a flourishing arts community."
+  },
+  {
+    "name": "Pai",
+    "country": "Thailand",
+    "continent": "Asia",
+    "why": "Bohemian mountain village in northern Thailand with hot springs, waterfalls, canyon walks, and a legendary traveler vibe."
+  },
+  {
+    "name": "Koh Lanta",
+    "country": "Thailand",
+    "continent": "Asia",
+    "why": "Laid-back island with long quiet beaches, mangrove kayaking, and old town stilted houses — Phuket without the crowds."
+  },
+  {
+    "name": "Bagan",
+    "country": "Myanmar",
+    "continent": "Asia",
+    "why": "Ancient city of over 2,000 Buddhist temples and pagodas spread across a vast plain, best explored by hot air balloon at sunrise."
+  },
+  {
+    "name": "Chiang Rai",
+    "country": "Thailand",
+    "continent": "Asia",
+    "why": "Home to the dazzling White Temple and Blue Temple, with hill tribe villages, tea plantations, and Golden Triangle history."
+  },
+  {
+    "name": "Fukuoka",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Japan's ramen capital with legendary yatai street food stalls, ancient shrines, and a relaxed Kyushu coastal lifestyle."
+  },
+  {
+    "name": "Sapporo",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Hokkaido's vibrant capital famous for its snow festival, world-class skiing, fresh seafood, and renowned miso ramen."
+  },
+  {
+    "name": "Okinawa",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Subtropical Japanese islands with turquoise waters, unique Ryukyu culture, incredible diving, and the world's longest-lived population."
+  },
+  {
+    "name": "Hiroshima",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "A city of resilience and peace, with the moving Peace Memorial, legendary okonomiyaki, and gateway to sacred Miyajima Island."
+  },
+  {
+    "name": "Kanazawa",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Beautifully preserved Edo-era city with one of Japan's top three gardens, samurai districts, and a thriving craft tradition."
+  },
+  {
+    "name": "Nara",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Japan's first permanent capital where sacred deer roam freely among ancient temples and the world's largest wooden building."
+  },
+  {
+    "name": "Hakone",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Mountain resort town with volcanic hot springs, open-air art museums, and iconic views of Mount Fuji across Lake Ashi."
+  },
+  {
+    "name": "Kamakura",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Coastal town with the iconic Great Buddha, bamboo groves, ancient Zen temples, and beautiful hiking trails just an hour from Tokyo."
+  },
+  {
+    "name": "Takayama",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Beautifully preserved mountain town in the Japanese Alps with Edo-era streets, morning markets, and gateway to Shirakawa-go."
+  },
+  {
+    "name": "Naoshima",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Art island in the Seto Inland Sea with world-class museums by Tadao Ando, iconic pumpkin sculptures, and a unique art-nature fusion."
+  },
+  {
+    "name": "Jeju",
+    "country": "South Korea",
+    "continent": "Asia",
+    "why": "Volcanic island with dramatic lava tubes, tangerine orchards, haenyeo diving women, and Korea's most beloved vacation destination."
+  },
+  {
+    "name": "Gyeongju",
+    "country": "South Korea",
+    "continent": "Asia",
+    "why": "The museum without walls — ancient Silla dynasty capital with royal tombs, temple ruins, and cherry blossom-lined historic parks."
+  },
+  {
+    "name": "Kaohsiung",
+    "country": "Taiwan",
+    "continent": "Asia",
+    "why": "Taiwan's vibrant port city with stunning waterfront art, night markets, Lotus Pond temples, and a thriving creative scene."
+  },
+  {
+    "name": "Tainan",
+    "country": "Taiwan",
+    "continent": "Asia",
+    "why": "Taiwan's oldest city and undisputed food capital, packed with centuries-old temples, creative lanes, and legendary street eats."
+  },
+  {
+    "name": "Hualien",
+    "country": "Taiwan",
+    "continent": "Asia",
+    "why": "Gateway to the breathtaking Taroko Gorge with its marble-walled canyons, plus coastal Indigenous culture and night markets."
+  },
+  {
+    "name": "Macau",
+    "country": "China",
+    "continent": "Asia",
+    "why": "Where Portuguese colonial heritage meets Chinese tradition, with UNESCO ruins, extraordinary Macanese cuisine, and dazzling entertainment."
+  },
+  {
+    "name": "Guilin",
+    "country": "China",
+    "continent": "Asia",
+    "why": "Iconic karst mountain landscapes along the Li River that have inspired Chinese painters and poets for millennia."
+  },
+  {
+    "name": "Lijiang",
+    "country": "China",
+    "continent": "Asia",
+    "why": "UNESCO old town of the Naxi people beneath the Jade Dragon Snow Mountain, with cobblestone lanes and traditional Dongba culture."
+  },
+  {
+    "name": "Kunming",
+    "country": "China",
+    "continent": "Asia",
+    "why": "The Spring City with year-round mild weather, the otherworldly Stone Forest, and gateway to Yunnan's diverse ethnic cultures."
+  },
+  {
+    "name": "Xiamen",
+    "country": "China",
+    "continent": "Asia",
+    "why": "Charming coastal city with the car-free colonial island of Gulangyu, Fujian tulou roundhouses nearby, and renowned tea culture."
+  },
+  {
+    "name": "Dali",
+    "country": "China",
+    "continent": "Asia",
+    "why": "Ancient walled city on Erhai Lake with Bai ethnic culture, three iconic pagodas, mountain trails, and a thriving backpacker scene."
+  },
+  {
+    "name": "Zhangjiajie",
+    "country": "China",
+    "continent": "Asia",
+    "why": "Towering sandstone pillar forests that inspired the floating mountains of Avatar, with glass skywalks and ancient Tujia culture."
+  },
+  {
+    "name": "Goa",
+    "country": "India",
+    "continent": "Asia",
+    "why": "India's beach paradise blending Portuguese heritage churches, spice plantations, vibrant markets, and legendary sunset beach parties."
+  },
+  {
+    "name": "Jaipur",
+    "country": "India",
+    "continent": "Asia",
+    "why": "The Pink City of Rajasthan with magnificent palaces, hilltop forts, colorful bazaars, and the iconic Hawa Mahal."
+  },
+  {
+    "name": "Udaipur",
+    "country": "India",
+    "continent": "Asia",
+    "why": "The Venice of the East with floating lake palaces, ornate temples, and one of the most romantic settings in all of India."
+  },
+  {
+    "name": "Kathmandu",
+    "country": "Nepal",
+    "continent": "Asia",
+    "why": "Mystical Himalayan capital with ancient Durbar squares, Buddhist stupas, Hindu temples, and gateway to Everest trekking."
+  },
+  {
+    "name": "Pokhara",
+    "country": "Nepal",
+    "continent": "Asia",
+    "why": "Serene lakeside city with jaw-dropping Annapurna panoramas, paragliding, and the start of Nepal's most famous trekking circuits."
+  },
+  {
+    "name": "Colombo",
+    "country": "Sri Lanka",
+    "continent": "Asia",
+    "why": "Sri Lanka's dynamic capital mixing colonial architecture, Buddhist temples, bustling Pettah markets, and an incredible food scene."
+  },
+  {
+    "name": "Galle",
+    "country": "Sri Lanka",
+    "continent": "Asia",
+    "why": "Atmospheric UNESCO-listed Dutch fort town on Sri Lanka's southern coast with boutique hotels, surf breaks, and whale watching nearby."
+  },
+  {
+    "name": "Kandy",
+    "country": "Sri Lanka",
+    "continent": "Asia",
+    "why": "Sacred hill capital home to the Temple of the Tooth Relic, surrounded by tea plantations, botanical gardens, and misty highlands."
+  },
+  {
+    "name": "Ella",
+    "country": "Sri Lanka",
+    "continent": "Asia",
+    "why": "Sri Lankan hill country gem reached by one of the world's most scenic train rides, with tea estates and the famous Nine Arch Bridge."
+  },
+  {
+    "name": "Pondicherry",
+    "country": "India",
+    "continent": "Asia",
+    "why": "French-Indian fusion town with pastel colonial streets, seaside promenades, the Auroville community, and Tamil temple culture."
+  },
+  {
+    "name": "Varanasi",
+    "country": "India",
+    "continent": "Asia",
+    "why": "One of the world's oldest continuously inhabited cities, where ancient Hindu rituals unfold along the sacred Ganges ghats."
+  },
+  {
+    "name": "Hampi",
+    "country": "India",
+    "continent": "Asia",
+    "why": "Surreal boulder-strewn landscape scattered with ruins of the Vijayanagara Empire, with ancient temples amid otherworldly terrain."
+  },
+  {
+    "name": "Kochi",
+    "country": "India",
+    "continent": "Asia",
+    "why": "Kerala's atmospheric port city with Chinese fishing nets, spice markets, colonial Fort Kochi, and gateway to serene backwater cruises."
+  },
+  {
+    "name": "Dubrovnik",
+    "country": "Croatia",
+    "continent": "Europe",
+    "why": "The Pearl of the Adriatic with imposing medieval walls, terracotta rooftops, and crystal-clear waters along a stunning coastline."
+  },
+  {
+    "name": "Kotor",
+    "country": "Montenegro",
+    "continent": "Europe",
+    "why": "Fairy-tale walled town nestled in a dramatic fjord-like bay, with Venetian architecture and a challenging fortress climb."
+  },
+  {
+    "name": "Hallstatt",
+    "country": "Austria",
+    "continent": "Europe",
+    "why": "Storybook Alpine lakeside village so beautiful it was replicated in China, with salt mines dating back to the Bronze Age."
+  },
+  {
+    "name": "Bruges",
+    "country": "Belgium",
+    "continent": "Europe",
+    "why": "Medieval canal city frozen in time with Gothic architecture, world-famous chocolate and beer, and enchanting cobblestone squares."
+  },
+  {
+    "name": "Cinque Terre",
+    "country": "Italy",
+    "continent": "Europe",
+    "why": "Five colorful fishing villages clinging to the Italian Riviera cliffs, connected by scenic hiking trails above the Mediterranean."
+  },
+  {
+    "name": "Amalfi",
+    "country": "Italy",
+    "continent": "Europe",
+    "why": "Jewel of the Amalfi Coast with a stunning cathedral, lemon groves cascading down cliffs, and one of the world's most scenic drives."
+  },
+  {
+    "name": "Positano",
+    "country": "Italy",
+    "continent": "Europe",
+    "why": "Pastel-colored cliffside village tumbling down to the sea, an icon of the Amalfi Coast with chic boutiques and pebble beaches."
+  },
+  {
+    "name": "Lake Como",
+    "country": "Italy",
+    "continent": "Europe",
+    "why": "Glamorous Italian lake surrounded by Alps with elegant villas, garden estates, and charming waterfront villages beloved by travelers."
+  },
+  {
+    "name": "Santorini",
+    "country": "Greece",
+    "continent": "Europe",
+    "why": "Iconic white-and-blue volcanic island with breathtaking caldera views, legendary sunsets, and ancient ruins beneath the cliffs."
+  },
+  {
+    "name": "Mykonos",
+    "country": "Greece",
+    "continent": "Europe",
+    "why": "Glamorous Cycladic island with iconic windmills, whitewashed labyrinth streets, world-class beach clubs, and vibrant nightlife."
+  },
+  {
+    "name": "Crete",
+    "country": "Greece",
+    "continent": "Europe",
+    "why": "Greece's largest island with the ancient Minoan palace of Knossos, dramatic Samaria Gorge, and outstanding Mediterranean cuisine."
+  },
+  {
+    "name": "Rhodes",
+    "country": "Greece",
+    "continent": "Europe",
+    "why": "Medieval walled old town — a UNESCO site — surrounded by ancient ruins, beautiful beaches, and a sunny Aegean climate."
+  },
+  {
+    "name": "Corfu",
+    "country": "Greece",
+    "continent": "Europe",
+    "why": "Lush Ionian island with Venetian old town charm, turquoise bays, olive groves, and a cosmopolitan cafe culture."
+  },
+  {
+    "name": "Antalya",
+    "country": "Turkey",
+    "continent": "Europe",
+    "why": "Turkish Riviera gem with a stunning old harbor, Roman ruins, turquoise coastline, and dramatic Taurus Mountain backdrop."
+  },
+  {
+    "name": "Cappadocia",
+    "country": "Turkey",
+    "continent": "Asia",
+    "why": "Surreal landscape of fairy chimneys, cave hotels, underground cities, and the world's most iconic hot air balloon experience."
+  },
+  {
+    "name": "Bodrum",
+    "country": "Turkey",
+    "continent": "Europe",
+    "why": "Aegean coastal gem with a crusader castle, whitewashed hillside houses, turquoise bays, and a legendary nightlife and sailing scene."
+  },
+  {
+    "name": "Faro",
+    "country": "Portugal",
+    "continent": "Europe",
+    "why": "Gateway to the Algarve's golden cliffs and sea caves, with a charming walled old town and the stunning Ria Formosa lagoon."
+  },
+  {
+    "name": "Sintra",
+    "country": "Portugal",
+    "continent": "Europe",
+    "why": "Fairy-tale hilltop town near Lisbon with colorful Pena Palace, mysterious Quinta da Regaleira, and misty forested estate grounds."
+  },
+  {
+    "name": "San Sebastian",
+    "country": "Spain",
+    "continent": "Europe",
+    "why": "Europe's culinary capital with the highest density of Michelin stars per capita, pintxos bars, and a perfect crescent beach."
+  },
+  {
+    "name": "Lucerne",
+    "country": "Switzerland",
+    "continent": "Europe",
+    "why": "Stunningly located Swiss city with a medieval covered bridge, Alpine lake, and easy access to Mount Pilatus and Rigi."
+  },
+  {
+    "name": "Interlaken",
+    "country": "Switzerland",
+    "continent": "Europe",
+    "why": "Adventure capital of the Alps nestled between two lakes with paragliding, canyoning, and gateway to the Jungfrau region."
+  },
+  {
+    "name": "Colmar",
+    "country": "France",
+    "continent": "Europe",
+    "why": "Half-timbered Alsatian gem that inspired Beauty and the Beast, with flower-lined canals and the famous Alsace wine route."
+  },
+  {
+    "name": "Lake Bled",
+    "country": "Slovenia",
+    "continent": "Europe",
+    "why": "Emerald-green glacial lake with a fairy-tale island church, medieval clifftop castle, and cream cake that's a national treasure."
+  },
+  {
+    "name": "Mostar",
+    "country": "Bosnia and Herzegovina",
+    "continent": "Europe",
+    "why": "Famous for its rebuilt Ottoman bridge where divers leap into the emerald Neretva, with a moving history and vibrant bazaar."
+  },
+  {
+    "name": "Sibenik",
+    "country": "Croatia",
+    "continent": "Europe",
+    "why": "Underrated Dalmatian coast town with a UNESCO cathedral built entirely of stone and gateway to Krka waterfalls national park."
+  },
+  {
+    "name": "Hvar",
+    "country": "Croatia",
+    "continent": "Europe",
+    "why": "Sun-drenched Adriatic island with lavender fields, a 2,400-year-old fortress, secluded beaches, and lively summer nightlife."
+  },
+  {
+    "name": "Cesky Krumlov",
+    "country": "Czech Republic",
+    "continent": "Europe",
+    "why": "Fairy-tale Bohemian town with a massive castle complex, winding Vltava River, and an enchanting Renaissance old town."
+  },
+  {
+    "name": "Tromso",
+    "country": "Norway",
+    "continent": "Europe",
+    "why": "Arctic city above the polar circle, prime for Northern Lights viewing, midnight sun, and Arctic Cathedral architecture."
+  },
+  {
+    "name": "Lofoten",
+    "country": "Norway",
+    "continent": "Europe",
+    "why": "Dramatic Arctic archipelago with jagged peaks, red fishing cabins, Northern Lights, midnight sun, and world-class surfing."
+  },
+  {
+    "name": "Rovaniemi",
+    "country": "Finland",
+    "continent": "Europe",
+    "why": "Official hometown of Santa Claus on the Arctic Circle, with Northern Lights, husky safaris, and ice hotel experiences."
+  },
+  {
+    "name": "Valletta",
+    "country": "Malta",
+    "continent": "Europe",
+    "why": "Europe's smallest capital packed with Baroque architecture, Knights of St. John history, and surrounded by Mediterranean blue."
+  },
+  {
+    "name": "Batumi",
+    "country": "Georgia",
+    "continent": "Europe",
+    "why": "Black Sea resort city with a quirky modern skyline, botanical gardens, casinos, and gateway to Georgia's wine country."
+  },
+  {
+    "name": "Marrakech",
+    "country": "Morocco",
+    "continent": "Africa",
+    "why": "Sensory overload in the best way — bustling souks, the iconic Jemaa el-Fna square, ornate riads, and Atlas Mountain proximity."
+  },
+  {
+    "name": "Fez",
+    "country": "Morocco",
+    "continent": "Africa",
+    "why": "The world's largest car-free urban area with a medieval medina of 9,000 alleyways, ancient tanneries, and living craft traditions."
+  },
+  {
+    "name": "Essaouira",
+    "country": "Morocco",
+    "continent": "Africa",
+    "why": "Wind-swept Atlantic coastal town with a bohemian arts scene, blue fishing boats, rampart walks, and legendary fresh seafood."
+  },
+  {
+    "name": "Chefchaouen",
+    "country": "Morocco",
+    "continent": "Africa",
+    "why": "The Blue Pearl of Morocco — an entire medina painted in shades of blue, nestled in the Rif Mountains with serene mountain hikes."
+  },
+  {
+    "name": "Tangier",
+    "country": "Morocco",
+    "continent": "Africa",
+    "why": "Gateway between Europe and Africa with a storied literary history, bustling kasbah, and sweeping views across the Strait of Gibraltar."
+  },
+  {
+    "name": "Luxor",
+    "country": "Egypt",
+    "continent": "Africa",
+    "why": "The world's greatest open-air museum with the Valley of the Kings, Karnak Temple, and hot air balloons over ancient Thebes."
+  },
+  {
+    "name": "Aswan",
+    "country": "Egypt",
+    "continent": "Africa",
+    "why": "Tranquil Nile city with felucca sailing, Nubian villages, Philae Temple, and gateway to Abu Simbel's colossal rock temples."
+  },
+  {
+    "name": "Zanzibar",
+    "country": "Tanzania",
+    "continent": "Africa",
+    "why": "Spice island paradise with Stone Town's winding alleys, pristine beaches, Swahili culture, and unforgettable sunset dhow cruises."
+  },
+  {
+    "name": "Livingstone",
+    "country": "Zambia",
+    "continent": "Africa",
+    "why": "Adventure capital at Victoria Falls — one of the Seven Natural Wonders — with bungee jumping, rafting, and safari access."
+  },
+  {
+    "name": "Cartagena",
+    "country": "Colombia",
+    "continent": "South America",
+    "why": "Colorful walled colonial city on the Caribbean with bougainvillea-draped balconies, vibrant plazas, and pulsing salsa rhythms."
+  },
+  {
+    "name": "Cusco",
+    "country": "Peru",
+    "continent": "South America",
+    "why": "Ancient Incan capital and gateway to Machu Picchu, where Inca stone walls underpin Spanish colonial churches."
+  },
+  {
+    "name": "Sacred Valley",
+    "country": "Peru",
+    "continent": "South America",
+    "why": "Breathtaking Andean valley of Inca ruins, traditional Quechua villages, terraced mountainsides, and the trail to Machu Picchu."
+  },
+  {
+    "name": "Banos",
+    "country": "Ecuador",
+    "continent": "South America",
+    "why": "Adventure town at the edge of the Amazon with the Swing at the End of the World, hot springs, and waterfall routes."
+  },
+  {
+    "name": "Bariloche",
+    "country": "Argentina",
+    "continent": "South America",
+    "why": "Patagonian lakeside town with Alpine scenery, chocolate shops, craft breweries, and world-class skiing and hiking."
+  },
+  {
+    "name": "Mendoza",
+    "country": "Argentina",
+    "continent": "South America",
+    "why": "Argentina's wine capital at the foot of the Andes with Malbec vineyards, outdoor adventures, and stunning mountain vistas."
+  },
+  {
+    "name": "La Paz",
+    "country": "Bolivia",
+    "continent": "South America",
+    "why": "World's highest capital city with dramatic canyon geography, Death Road cycling, witches' markets, and cable car city transit."
+  },
+  {
+    "name": "Sucre",
+    "country": "Bolivia",
+    "continent": "South America",
+    "why": "Bolivia's white city and constitutional capital with beautiful colonial plazas, dinosaur footprints, and rich indigenous textile markets."
+  },
+  {
+    "name": "Oaxaca",
+    "country": "Mexico",
+    "continent": "North America",
+    "why": "Mexico's culinary and cultural jewel with mezcal distilleries, ancient Zapotec ruins, vibrant markets, and legendary mole sauces."
+  },
+  {
+    "name": "Playa del Carmen",
+    "country": "Mexico",
+    "continent": "North America",
+    "why": "Riviera Maya beach town with turquoise Caribbean waters, cenote swimming, nearby Mayan ruins, and a lively Fifth Avenue."
+  },
+  {
+    "name": "Tulum",
+    "country": "Mexico",
+    "continent": "North America",
+    "why": "Clifftop Mayan ruins overlooking the Caribbean, bohemian beach clubs, cenotes, and a thriving wellness and art scene."
+  },
+  {
+    "name": "San Miguel de Allende",
+    "country": "Mexico",
+    "continent": "North America",
+    "why": "Stunning colonial city with a pink Gothic parish church, cobblestone streets, world-class art galleries, and vibrant expat culture."
+  },
+  {
+    "name": "Antigua Guatemala",
+    "country": "Guatemala",
+    "continent": "Central America",
+    "why": "Cobblestoned former capital surrounded by volcanoes, with baroque church ruins, colorful markets, and top-rated coffee culture."
+  },
+  {
+    "name": "Lake Atitlan",
+    "country": "Guatemala",
+    "continent": "Central America",
+    "why": "Stunning volcanic lake surrounded by Mayan villages, each with its own textile tradition, considered one of the world's most beautiful lakes."
+  },
+  {
+    "name": "Bocas del Toro",
+    "country": "Panama",
+    "continent": "Central America",
+    "why": "Caribbean archipelago with overwater hostels, bioluminescent waters, sloth-filled rainforests, and a chilled surf culture."
+  },
+  {
+    "name": "Caye Caulker",
+    "country": "Belize",
+    "continent": "Central America",
+    "why": "Tiny Caribbean island with a 'go slow' motto, the Blue Hole nearby, incredible snorkeling, and barefoot sandy streets."
+  },
+  {
+    "name": "Queenstown",
+    "country": "New Zealand",
+    "continent": "Oceania",
+    "why": "The adventure capital of the world with bungee jumping, jet boating, skiing, and stunning Lord of the Rings landscapes."
+  },
+  {
+    "name": "Rotorua",
+    "country": "New Zealand",
+    "continent": "Oceania",
+    "why": "Geothermal wonderland with erupting geysers, bubbling mud pools, rich Maori cultural experiences, and lush forest trails."
+  },
+  {
+    "name": "Wanaka",
+    "country": "New Zealand",
+    "continent": "Oceania",
+    "why": "Quieter alternative to Queenstown with the famous lone tree, Roy's Peak hike, and stunning Southern Alps lakeside setting."
+  },
+  {
+    "name": "Nadi",
+    "country": "Fiji",
+    "continent": "Oceania",
+    "why": "Gateway to Fiji's paradise islands with crystal lagoons, coral reefs, warm Fijian hospitality, and overwater bure resorts."
+  },
+  {
+    "name": "Bora Bora",
+    "country": "French Polynesia",
+    "continent": "Oceania",
+    "why": "The ultimate tropical luxury destination with iconic overwater bungalows, a turquoise lagoon, and Mount Otemanu views."
+  },
+  {
+    "name": "Moorea",
+    "country": "French Polynesia",
+    "continent": "Oceania",
+    "why": "Tahiti's heart-shaped sister island with dramatic peaks, pineapple plantations, and some of the South Pacific's best snorkeling."
+  },
+  {
+    "name": "Rarotonga",
+    "country": "Cook Islands",
+    "continent": "Oceania",
+    "why": "Lush volcanic island with a cross-island jungle trek, lagoon snorkeling, and authentic Polynesian culture without the crowds."
+  },
+  {
+    "name": "San Juan",
+    "country": "Puerto Rico",
+    "continent": "Caribbean",
+    "why": "Colorful colonial fortress city with cobblestone streets, salsa music, bioluminescent bays, and Caribbean beach culture."
+  },
+  {
+    "name": "Nassau",
+    "country": "Bahamas",
+    "continent": "Caribbean",
+    "why": "Bahamian capital with pastel colonial buildings, crystal-clear swimming pigs excursions, and the vibrant Junkanoo festival."
+  },
+  {
+    "name": "Bridgetown",
+    "country": "Barbados",
+    "continent": "Caribbean",
+    "why": "UNESCO-listed Caribbean capital with British colonial heritage, rum distilleries, surf spots, and legendary Bajan flying fish."
+  },
+  {
+    "name": "Willemstad",
+    "country": "Curacao",
+    "continent": "Caribbean",
+    "why": "UNESCO World Heritage waterfront with colorful Dutch colonial buildings, vibrant street art, and stunning blue liqueur heritage."
+  },
+  {
+    "name": "Montego Bay",
+    "country": "Jamaica",
+    "continent": "Caribbean",
+    "why": "Jamaica's tourism capital with reggae rhythms, jerk chicken, Doctor's Cave Beach, and lush Blue Mountain coffee country nearby."
+  },
+  {
+    "name": "Punta Cana",
+    "country": "Dominican Republic",
+    "continent": "Caribbean",
+    "why": "Palm-lined Caribbean beach paradise with all-inclusive resorts, world-class golf, and cenote-like swimming holes."
+  },
+  {
+    "name": "Petra",
+    "country": "Jordan",
+    "continent": "Middle East",
+    "why": "One of the New Seven Wonders of the World — a rose-red city carved into sandstone cliffs over 2,000 years ago."
+  },
+  {
+    "name": "Wadi Rum",
+    "country": "Jordan",
+    "continent": "Middle East",
+    "why": "Mars-like desert landscape of towering sandstone formations, Bedouin camps under star-filled skies, and Lawrence of Arabia history."
+  },
+  {
+    "name": "Aqaba",
+    "country": "Jordan",
+    "continent": "Middle East",
+    "why": "Jordan's Red Sea resort city with world-class coral reef diving, ancient ruins, and a warm year-round beach escape."
+  },
+  {
+    "name": "Salalah",
+    "country": "Oman",
+    "continent": "Middle East",
+    "why": "Oman's monsoon-blessed southern city with lush green wadis, frankincense heritage, and a dramatic contrast to Arabian desert."
+  },
+  {
+    "name": "Samarkand",
+    "country": "Uzbekistan",
+    "continent": "Asia",
+    "why": "Legendary Silk Road city with jaw-dropping turquoise-tiled Registan Square, ancient mosques, and a 2,700-year history."
+  },
+  {
+    "name": "Bukhara",
+    "country": "Uzbekistan",
+    "continent": "Asia",
+    "why": "One of the best-preserved Silk Road cities with ancient madrasas, a covered bazaar, and living craft traditions spanning centuries."
+  },
+  {
+    "name": "Maldives",
+    "country": "Maldives",
+    "continent": "Asia",
+    "why": "Ultimate overwater villa destination with bioluminescent beaches, world-class diving, and coral atolls in impossibly clear water."
+  },
+  {
+    "name": "Luang Namtha",
+    "country": "Laos",
+    "continent": "Asia",
+    "why": "Northern Laos adventure hub for trekking through ethnic minority villages, kayaking the Nam Ha river, and bamboo forest camping."
+  },
+  {
+    "name": "Ninh Binh",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "why": "Vietnam's inland Ha Long Bay with karst peaks rising from rice paddies, ancient temples, and sampan rides through grottoes."
+  },
+  {
+    "name": "Sapa",
+    "country": "Vietnam",
+    "continent": "Asia",
+    "why": "Misty mountain town with dramatic terraced rice paddies, ethnic Hmong and Dao villages, and trekking below Fansipan peak."
+  },
+  {
+    "name": "Kota Kinabalu",
+    "country": "Malaysia",
+    "continent": "Asia",
+    "why": "Gateway to Mount Kinabalu and Borneo's rainforests, with island-hopping, world-class diving at Sipadan, and stunning sunsets."
+  },
+  {
+    "name": "Pakse",
+    "country": "Laos",
+    "continent": "Asia",
+    "why": "Gateway to the Bolaven Plateau's spectacular waterfalls, coffee plantations, and the 4,000 islands of the Mekong at Si Phan Don."
+  },
+  {
+    "name": "Savannakhet",
+    "country": "Laos",
+    "continent": "Asia",
+    "why": "Laid-back Mekong town with crumbling French colonial architecture, the famous dinosaur museum, and a slow riverside lifestyle."
+  },
+  {
+    "name": "Seminyak",
+    "country": "Indonesia",
+    "continent": "Asia",
+    "why": "Bali's trendy beach neighborhood with upscale beach clubs, boutique shopping, world-class restaurants, and legendary sunsets."
+  },
+  {
+    "name": "Nagano",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Host of the 1998 Winter Olympics with famous snow monkeys bathing in hot springs, Buddhist Zenko-ji temple, and pristine ski slopes."
+  },
+  {
+    "name": "Matsumoto",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Home to one of Japan's most beautiful original castles, gateway to the Northern Alps, and a thriving craft beer and wasabi scene."
+  },
+  {
+    "name": "Jiufen",
+    "country": "Taiwan",
+    "continent": "Asia",
+    "why": "Atmospheric hillside town that inspired Spirited Away, with lantern-lit tea houses, ocean views, and old mining tunnels."
+  },
+  {
+    "name": "Beppu",
+    "country": "Japan",
+    "continent": "Asia",
+    "why": "Japan's hot spring capital with steaming 'hells' tour, sand baths, mud baths, and more onsen per capita than anywhere on Earth."
+  },
+  {
+    "name": "Muang Ngoi",
+    "country": "Laos",
+    "continent": "Asia",
+    "why": "Remote riverside village only accessible by boat, surrounded by karst mountains, with no roads, no ATMs — pure Southeast Asian tranquility."
+  }
+]

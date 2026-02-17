@@ -36,13 +36,13 @@ struct ExplorationMethodStepView: View {
                     }
 
                     MethodCard(
-                        icon: "waveform",
-                        title: "Vibes",
-                        description: "Choose mood tags and aesthetics to find cities that feel right.",
+                        icon: "safari",
+                        title: "Compass",
+                        description: "Set your signals and constraints to find cities that match your vibe.",
                         isSelected: startType == .vibes,
-                        isAvailable: false
+                        isAvailable: true
                     ) {
-                        // Coming soon
+                        startType = .vibes
                     }
 
                     MethodCard(
@@ -59,18 +59,18 @@ struct ExplorationMethodStepView: View {
             }
             .padding(.bottom, 100) // Space for button
         }
-        .background(TeleportTheme.Colors.background)
+        .background(TeleportTheme.Colors.backgroundElevated)
         .navigationBarTitleDisplayMode(.inline)
         .overlay(alignment: .bottom) {
             TeleportButton(title: "Continue", icon: "arrow.right") {
                 onContinue()
             }
-            .disabled(startType != .cityILove) // Only city_i_love is available
+            .disabled(startType == .myWords) // Only myWords is still unavailable
             .padding(.horizontal, TeleportTheme.Spacing.lg)
             .padding(.bottom, TeleportTheme.Spacing.lg)
             .background(
                 LinearGradient(
-                    colors: [TeleportTheme.Colors.background.opacity(0), TeleportTheme.Colors.background],
+                    colors: [TeleportTheme.Colors.backgroundElevated.opacity(0), TeleportTheme.Colors.backgroundElevated],
                     startPoint: .top,
                     endPoint: .center
                 )

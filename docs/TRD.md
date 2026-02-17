@@ -13,7 +13,7 @@ TeleportMe is an iOS-native city discovery app. Users create named "Explorations
 
 **Architecture class:** Client-heavy SwiftUI app with Supabase BaaS (Backend-as-a-Service), a single Edge Function for AI-powered exploration generation, and an AppClip for lightweight onboarding.
 
-**Current state:** MVP with 55 seeded cities, 17 score categories per city, onboarding flow, multi-exploration support, iOS 26 search tab, saved cities, profile editing, interactive map, AppClip, and offline-first caching.
+**Current state:** MVP with 55 seeded cities, 17 score categories per city, 20 vibe tags across 5 categories, onboarding flow, multi-exploration support (city-based and vibes-based), iOS 26 search tab, saved cities, profile editing with vibe preferences, interactive map, AppClip with vibes path, and offline-first caching.
 
 ---
 
@@ -153,10 +153,11 @@ TeleportMe/
       NameInputView.swift                      # Collect user name
       SignUpView.swift                         # Email/password registration + validation
       SignInView.swift                         # Email/password login
-      StartTypeView.swift                      # Choose start type
+      StartTypeView.swift                      # Choose start type (cityILove, vibes, myWords)
     Discovery/
       CitySearchView.swift                     # Search + trending cities
       CityBaselineView.swift                   # Selected city metrics display
+      VibeSelectionView.swift                  # Multi-select vibe picker (FlowLayout, grouped by category)
       PreferencesView.swift                    # 4 preference sliders
     Results/
       GeneratingView.swift                     # Loading animation during report gen
@@ -165,7 +166,7 @@ TeleportMe/
     NewExploration/
       NewExplorationFlow.swift                 # Modal container + step enum + local @State
       ExplorationNameStepView.swift            # Title input
-      ExplorationMethodStepView.swift          # Start type picker (cityILove active)
+      ExplorationMethodStepView.swift          # Start type picker (cityILove + vibes active, myWords coming soon)
       ExplorationCityPickerStepView.swift      # City search with Skip option
       ExplorationPreferencesStepView.swift     # 4 preference sliders (local state)
       ExplorationGeneratingStepView.swift      # Loading animation + generation call
@@ -183,8 +184,9 @@ TeleportMe/
 
 Clip/                                          # AppClip target (Xcode-managed)
   ClipApp.swift                                # @main entry point
-  ClipCoordinator.swift                        # Minimal coordinator (cityService + explorationService)
-  ClipRootView.swift                           # Screen router (preferences → generating → results)
+  ClipCoordinator.swift                        # Minimal coordinator (cityService + explorationService + vibes)
+  ClipRootView.swift                           # Screen router (startType → [vibes] → preferences → generating → results)
+  ClipStartTypeView.swift                      # Start type picker ("A City I Love" + "Vibes" paths)
   ClipPreferencesView.swift                    # Quick 4-slider preference input
   ClipGeneratingView.swift                     # Loading animation + generation call
   ClipResultsView.swift                        # 3 match cards + "Get Full App" StoreKit overlay
@@ -219,14 +221,17 @@ Each tab manages its own internal NavigationStack. New Exploration modal is pres
 
 **New Exploration modal (NavigationStack in sheet):**
 ```
-ExplorationName → ExplorationMethod → ExplorationCityPicker → ExplorationPreferences → ExplorationGenerating → ExplorationResults
+ExplorationName → ExplorationMethod
+  ├─ (cityILove) → ExplorationCityPicker → ExplorationPreferences → ExplorationGenerating → ExplorationResults
+  └─ (vibes)     → VibeSelection         → ExplorationPreferences → ExplorationGenerating → ExplorationResults
 ```
 
-All modal state is `@State` local to the flow container — NOT on AppCoordinator. This eliminates stale state bugs.
+All modal state is `@State` local to the flow container — NOT on AppCoordinator. This eliminates stale state bugs. Saved profile vibes are pre-filled into the vibe selection when the flow opens.
 
 **AppClip flow:**
 ```
-ClipPreferences → ClipGenerating → ClipResults (+ StoreKit App Store overlay)
+ClipStartType → (cityILove) → ClipPreferences → ClipGenerating → ClipResults (+ StoreKit overlay)
+             └─ (vibes)     → VibeSelection   → ClipPreferences → ClipGenerating → ClipResults
 ```
 
 ### 3.5 State Management Pattern
@@ -360,8 +365,22 @@ city_scores (
     UNIQUE(city_id, category)
 )
 
-vibe_tags (id, name, emoji, category)
-city_vibe_tags (city_id, vibe_tag_id, strength)  -- junction table
+vibe_tags (
+    id uuid PRIMARY KEY,
+    name text NOT NULL,            -- e.g. "Cafe Culture", "Walkable"
+    emoji text,                    -- e.g. "☕", "🚶"
+    category text NOT NULL,        -- lifestyle | culture | pace | values | environment
+    created_at timestamptz
+)
+-- 20 tags across 5 categories: Lifestyle (4), Culture (4), Pace (4), Values (4), Environment (4)
+
+city_vibe_tags (
+    city_id text REFERENCES cities(id),
+    vibe_tag_id uuid REFERENCES vibe_tags(id),
+    strength double precision,     -- 0.3 to 1.0 (how strongly the vibe applies)
+    PRIMARY KEY (city_id, vibe_tag_id)
+)
+-- Each city has 5-10 vibe mappings with varying strengths
 ```
 
 **User data (private per user via RLS):**
@@ -407,7 +426,7 @@ explorations (                     -- NEW: primary exploration storage
     preferences jsonb NOT NULL DEFAULT '{}',
     results jsonb NOT NULL DEFAULT '[]',
     ai_summary text,
-    vibe_tags uuid[] DEFAULT '{}',    -- future: vibes start type
+    vibe_tags uuid[] DEFAULT '{}',    -- vibe tag IDs for vibes start type explorations
     free_text text,                    -- future: my_words start type
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
@@ -488,6 +507,8 @@ engagement_events_*        ON engagement_events (user_id, event_type, created_at
     "current_city_id": "san-francisco",   // optional — null for vibes/words start types
     "start_type": "city_i_love",          // "city_i_love" | "vibes" | "my_words"
     "title": "My Adventure Trip",         // exploration title
+    "vibe_tags": ["uuid1", "uuid2"],      // vibe tag UUIDs — primary signal for vibes start type
+    "user_vibe_tags": ["uuid3", "uuid4"], // saved profile vibes — secondary signal for all start types
     "preferences": {
         "cost": 7.0,
         "climate": 6.0,
@@ -501,17 +522,23 @@ engagement_events_*        ON engagement_events (user_id, event_type, created_at
 1. Authenticate user from JWT in Authorization header
 2. If `current_city_id` provided: fetch current city + its 17 scores; otherwise skip
 3. Fetch all candidate cities (excluding current if provided) + all scores
-4. **Algorithmic scoring** for each candidate:
-   - Weighted sum: `(pref_weight/10) * (city_score/10) * 100` for 4 primary categories
-   - Bonus: 5 additional categories (Safety, Healthcare, Commute, Internet, Tolerance) at 10% weight each
-   - Clamp result to 40-99%
-5. Take top 8 candidates
-6. **GPT-4o-mini refinement:** Send top 8 with scores and user prefs. GPT picks 3-5 best matches and writes 1-sentence personalized insights per city
-7. Parse GPT JSON response; validate city IDs against candidate pool
-8. **Fallback:** If GPT parse fails, use top 4 algorithmic picks with generic insights
-9. Build comparison metrics for 5 display categories (cost, climate, culture, economy, commute)
-10. Save to `explorations` table AND `city_reports` (legacy) table (if authenticated)
-11. Return structured response
+4. If `vibe_tags` provided (vibes mode): fetch `city_vibe_tags` rows matching the selected tags and compute per-city vibe scores (`avgStrength * coverage * 100`)
+5. If `user_vibe_tags` provided (saved profile vibes): fetch `city_vibe_tags` rows for those tags and compute per-city vibe affinity scores (same formula)
+6. **Algorithmic scoring** for each candidate:
+   - **Preference score:** Weighted sum of 7 categories: `(pref_weight/10) * (city_score/10) * 100` for Cost, Climate, Culture, Job Market, Safety, Commute, Healthcare; light bonus for Internet Access and Tolerance
+   - Clamp preference score to 40-99%
+   - **Blended match score:**
+     - If vibes mode: `vibeScore * 0.6 + prefScore * 0.4` (vibe score is primary signal)
+     - If user has saved profile vibes (non-vibes mode): `prefScore + (vibeAffinity / 100) * 5` (up to +5 point bonus)
+     - Otherwise: `prefScore` only
+   - Clamp final match score to 40-99%
+7. Take top 8 candidates
+8. **GPT-4o-mini refinement:** Send top 8 with scores, user prefs, and vibe context. GPT picks 3-5 best matches and writes 1-sentence personalized insights. In vibes mode, the prompt instructs GPT to strongly prioritize vibe-matching cities; with profile vibes, it gives slight preference
+9. Parse GPT JSON response; validate city IDs against candidate pool
+10. **Fallback:** If GPT parse fails, use top 4 algorithmic picks with generic insights
+11. Build comparison metrics for 7 display categories (cost, climate, culture, economy, safety, commute, healthcare)
+12. Save to `explorations` table (with `vibe_tags` array) AND `city_reports` (legacy) table (if authenticated)
+13. Return structured response
 
 **Response:**
 ```json
@@ -554,6 +581,8 @@ engagement_events_*        ON engagement_events (user_id, event_type, created_at
 - Full metadata (name, country, continent, lat/long, population, image URL)
 - 17 score categories per city (935 total scores)
 - Teleport city scores (overall quality-of-life index)
+- 20 vibe tags across 5 categories (Lifestyle, Culture, Pace, Values, Environment)
+- 5-10 vibe mappings per city with strength values (0.3-1.0) in `city_vibe_tags`
 
 Score categories: Housing, Cost of Living, Startups, Venture Capital, Travel Connectivity, Commute, Business Freedom, Safety, Healthcare, Education, Environmental Quality, Economy, Taxation, Internet Access, Leisure & Culture, Tolerance, Outdoors
 
@@ -665,6 +694,85 @@ SavedCitiesService.toggleSave(cityId)
       +-> On error: ROLLBACK + CacheManager.save(rollback state)
 ```
 
+### 5.4 Vibes Feature
+
+The Vibes feature lets users explore cities by selecting mood/vibe tags instead of (or in addition to) starting from a baseline city.
+
+**Start Types:**
+
+| Start Type | Status | Description |
+|------------|--------|-------------|
+| `city_i_love` | Active | User picks a baseline city; the system finds similar ones |
+| `vibes` | Active | User selects 3+ vibe tags; the system matches cities by vibe affinity + preferences |
+| `my_words` | Coming Soon | User describes their ideal city in free text (placeholder in UI) |
+
+**Vibe Tags:**
+
+20 tags stored in the `vibe_tags` table, distributed across 5 categories:
+
+| Category | Example Tags |
+|----------|-------------|
+| Lifestyle | Cafe Culture, Nightlife, Foodie, Outdoor Active |
+| Culture | Arts & Museums, Historic, Diverse, Music Scene |
+| Pace | Fast-Paced, Laid-Back, Walkable, Bikeable |
+| Values | Eco-Friendly, LGBTQ+ Friendly, Family Friendly, Safe |
+| Environment | Beach, Mountain, Green Spaces, Sunny |
+
+Each city has 5-10 vibe mappings in `city_vibe_tags` with a `strength` value between 0.3 (weak association) and 1.0 (defining characteristic).
+
+**VibeSelectionView (shared component):**
+
+A multi-select vibe picker used in four contexts: onboarding, new exploration flow, App Clip, and profile editing. Implementation details:
+- `FlowLayout` (custom SwiftUI `Layout`) arranges chips in wrapping horizontal rows
+- Chips are grouped by category using `SectionHeader` and `TrendingChip` components
+- Minimum 3 selections required before the Continue button enables
+- Selection count indicator shows remaining picks needed
+- Staggered spring animations on appearance (per-category delay of `index * 0.1s`)
+- Tags are fetched from Supabase via `ExplorationService.fetchVibeTags()`
+
+**Vibe Scoring Algorithm (Edge Function):**
+
+For **vibes-mode explorations** (`start_type = "vibes"`), the match score is a blend:
+```
+vibeScore = avgStrength * coverage * 100
+  where:
+    avgStrength = mean of matched vibe tag strengths for the city
+    coverage    = (number of matched tags) / (total selected tags)
+
+matchScore = vibeScore * 0.6 + prefScore * 0.4
+```
+
+For **all explorations** with saved profile vibes (`user_vibe_tags` present, non-vibes mode):
+```
+vibeAffinity = avgStrength * coverage * 100  (same formula, using profile vibes)
+matchScore   = prefScore + (vibeAffinity / 100) * 5   (up to +5 point bonus)
+```
+
+The GPT prompt is augmented with vibe context: in vibes mode, it instructs GPT to "strongly prioritize cities that match these vibes"; with profile vibes, it instructs GPT to "give slight preference."
+
+**Profile Vibes:**
+
+Users can view and edit their vibe selections from `EditProfileView`:
+- A "Your Vibes" section shows selected vibes as accent-colored pills with remove buttons
+- Tapping "Edit Vibes" or "Add Vibes" presents `VibeSelectionView` in a sheet
+- Saved vibes are persisted to `user_preferences.selected_vibe_tags` (UUID array) via `savePreferences()`
+- Saved profile vibes are pre-filled into `selectedVibeIds` when the new exploration flow opens
+- Saved profile vibes are sent as `user_vibe_tags` to the edge function for all explorations (secondary signal)
+
+**App Clip Integration:**
+
+The App Clip now starts with `ClipStartTypeView` offering two paths:
+- "A City I Love" -- proceeds directly to preferences
+- "A Place That Feels Like Me" (Vibes) -- routes through `VibeSelectionView` before preferences
+
+`ClipCoordinator` manages the `selectedStartType`, `selectedVibeIds`, and screen routing. The clip does not require authentication; vibes are passed directly to the edge function.
+
+**Display Integration:**
+
+- `ExplorationDetailView` shows a "Vibes" section with vibe pills (using `FlowLayout` and `TrendingChip`) for vibes-type explorations. Vibe tag names/emoji are resolved by fetching all tags and building a lookup map.
+- `DiscoverView` shows "Vibes exploration" as the subtitle label on exploration cards when `startType == .vibes`, instead of the "Based on {city}" label used for city-based explorations.
+- The exploration card icon uses `waveform` SF Symbol for vibes-type explorations (vs. `heart.fill` for city-based).
+
 ---
 
 ## 6. Security Analysis
@@ -714,7 +822,6 @@ SavedCitiesService.toggleSave(cityId)
 | **Cache corruption** | Auto-deleted, but user sees empty state until network fetch | Add migration versioning to cache format |
 | **No analytics pipeline** | `engagement_events` table exists but client never writes events | Implement event tracking for key user actions |
 | **Map tab** | Interactive MapKit view with annotations + filters | Functional; needs performance tuning for large city counts |
-| **Vibe tags unused** | Schema exists (`vibe_tags`, `city_vibe_tags`, `user_preferences.selected_vibe_tags`) but no client integration | Wire up or remove from schema |
 
 ### 7.3 Low Priority / Future
 
@@ -782,7 +889,7 @@ SavedCitiesService.toggleSave(cityId)
 
 ### 9.3 Phase 3: Feature Expansion
 
-- [ ] Vibe tags integration (browse cities by vibe)
+- [x] Vibe tags integration (vibes start type, profile vibes, vibe scoring, App Clip vibes path)
 - [x] Interactive map with city pins and filters
 - [ ] Social features (share reports, compare with friends)
 - [ ] Push notifications for new city data

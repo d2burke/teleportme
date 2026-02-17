@@ -59,11 +59,12 @@ enum OnboardingStep: Int, CaseIterable, Hashable {
     case name = 0
     case signUp = 1
     case startType = 2
-    case citySearch = 3
-    case cityBaseline = 4
-    case preferences = 5
-    case generating = 6
-    case recommendations = 7
+    case citySearch = 3        // only for .cityILove
+    case cityBaseline = 4      // only for .cityILove
+    case tripVibes = 5         // Trip Compass — signal grid
+    case constraints = 6       // Trip Compass — constraints
+    case generating = 7
+    case recommendations = 8
 
     var next: OnboardingStep? {
         OnboardingStep(rawValue: rawValue + 1)
@@ -114,6 +115,11 @@ final class AppCoordinator {
     var selectedCityId: String? = nil
     var selectedCity: CityWithScores? = nil
     var preferences: UserPreferences = .defaults
+    var selectedVibeIds: Set<String> = []
+
+    // Compass state (for onboarding flow)
+    var signalWeights: [CompassSignal: Double] = [:]
+    var tripConstraints: TripConstraints = TripConstraints()
 
     // MARK: - Navigation
 
@@ -123,10 +129,22 @@ final class AppCoordinator {
     }
 
     func advanceOnboarding(from step: OnboardingStep) {
-        guard let next = step.next else { return }
-
-        // Persist preferences to Supabase when leaving the preferences step
-        if step == .preferences {
+        // Persist preferences to Supabase when leaving the constraints step
+        if step == .constraints {
+            // Infer preferences from signal weights for backward compat
+            let inferred = HeadingEngine.inferPreferences(from: signalWeights)
+            preferences = UserPreferences(
+                startType: preferences.startType,
+                costPreference: inferred.cost,
+                climatePreference: inferred.climate,
+                culturePreference: inferred.culture,
+                jobMarketPreference: inferred.jobMarket,
+                safetyPreference: inferred.safety,
+                commutePreference: inferred.commute,
+                healthcarePreference: inferred.healthcare,
+                selectedVibeTags: preferences.selectedVibeTags,
+                signalWeights: preferences.signalWeights
+            )
             Task { await savePreferences() }
         }
 
@@ -137,7 +155,26 @@ final class AppCoordinator {
                 navigationPath.removeLast()
             }
             navigationPath.append(OnboardingStep.recommendations)
+        } else if step == .startType {
+            // Conditional routing based on selected start type
+            if selectedStartType == .vibes {
+                // Compass mode — go directly to trip vibes
+                navigationPath.append(OnboardingStep.tripVibes)
+            } else {
+                navigationPath.append(OnboardingStep.citySearch)
+            }
+        } else if step == .cityBaseline {
+            // After baseline city, go to trip vibes (pre-loaded from city scores)
+            if let city = selectedCity {
+                signalWeights = HeadingEngine.signalWeights(fromCityScores: city.scores)
+            }
+            navigationPath.append(OnboardingStep.tripVibes)
+        } else if step == .tripVibes {
+            navigationPath.append(OnboardingStep.constraints)
+        } else if step == .constraints {
+            navigationPath.append(OnboardingStep.generating)
         } else {
+            guard let next = step.next else { return }
             navigationPath.append(next)
         }
     }
@@ -218,9 +255,26 @@ final class AppCoordinator {
     func generateReport() async throws -> GenerateReportResponse {
         let userId = authService.currentUser?.id.uuidString
 
-        // Build a default exploration title
-        let cityName = selectedCity?.city.name ?? "My First"
-        let defaultTitle = "\(cityName) Exploration"
+        // Build a default exploration title (use heading if compass mode)
+        let defaultTitle: String
+        if !signalWeights.isEmpty {
+            let heading = HeadingEngine.heading(from: signalWeights)
+            if !heading.topSignals.isEmpty {
+                defaultTitle = "\(heading.emoji) \(heading.name) Trip"
+            } else {
+                defaultTitle = "Compass Exploration"
+            }
+        } else {
+            let cityName = selectedCity?.city.name ?? "My First"
+            defaultTitle = "\(cityName) Exploration"
+        }
+
+        // Build compass vibes dict for the edge function
+        let compassVibesDict: [String: Double]? = signalWeights.isEmpty
+            ? nil
+            : Dictionary(uniqueKeysWithValues: signalWeights.map { ($0.key.rawValue, $0.value) })
+
+        let compassConstraintsParam: TripConstraints? = tripConstraints.hasAny ? tripConstraints : nil
 
         // Route through ExplorationService (which calls the same edge function)
         let response = try await explorationService.generateExploration(
@@ -228,6 +282,10 @@ final class AppCoordinator {
             startType: selectedStartType,
             baselineCityId: selectedCityId,
             preferences: preferences,
+            vibeTags: selectedVibeIds.isEmpty ? nil : Array(selectedVibeIds),
+            userVibeTags: preferences.selectedVibeTags,
+            compassVibes: compassVibesDict,
+            compassConstraints: compassConstraintsParam,
             userId: userId
         )
 
@@ -235,6 +293,13 @@ final class AppCoordinator {
         reportService.currentReport = response
         if let userId {
             CacheManager.shared.save(response, for: .currentReport(userId: userId))
+        }
+
+        // Evolve heading with trip vibes (onboarding path)
+        if !signalWeights.isEmpty {
+            let existing = preferences.signalWeights ?? [:]
+            preferences.signalWeights = HeadingEngine.evolveHeading(existing: existing, tripVibes: signalWeights)
+            Task { await savePreferences() }
         }
 
         return response
@@ -260,7 +325,9 @@ final class AppCoordinator {
             jobMarketPreference: preferences.jobMarketPreference,
             safetyPreference: preferences.safetyPreference,
             commutePreference: preferences.commutePreference,
-            healthcarePreference: preferences.healthcarePreference
+            healthcarePreference: preferences.healthcarePreference,
+            selectedVibeTags: preferences.selectedVibeTags,
+            signalWeights: preferences.signalWeights
         )
 
         do {
@@ -288,8 +355,9 @@ final class AppCoordinator {
                 restoreCachedState(userId: userId)
             }
 
-            // Load cities (will use disk cache if available)
+            // Load cities and scores (will use disk cache if available)
             await cityService.fetchAllCities()
+            await cityService.fetchAllScores()
 
             // Load explorations (cache-then-network)
             if let userId {
@@ -336,6 +404,9 @@ final class AppCoordinator {
         preferences = .defaults
         onboardingName = ""
         selectedStartType = .cityILove
+        selectedVibeIds = []
+        signalWeights = [:]
+        tripConstraints = TripConstraints()
         searchText = ""
         reportService.currentReport = nil
         reportService.error = nil
@@ -393,6 +464,8 @@ private struct UserPreferencesRow: Encodable {
     let safetyPreference: Double
     let commutePreference: Double
     let healthcarePreference: Double
+    let selectedVibeTags: [String]?
+    let signalWeights: [String: Double]?
 
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
@@ -404,5 +477,7 @@ private struct UserPreferencesRow: Encodable {
         case safetyPreference = "safety_preference"
         case commutePreference = "commute_preference"
         case healthcarePreference = "healthcare_preference"
+        case selectedVibeTags = "selected_vibe_tags"
+        case signalWeights = "signal_weights"
     }
 }

@@ -59,7 +59,7 @@ struct ExplorationNameStepView: View {
             Spacer()
             Spacer()
         }
-        .background(TeleportTheme.Colors.background)
+        .background(TeleportTheme.Colors.backgroundElevated)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -75,7 +75,7 @@ struct ExplorationNameStepView: View {
             .padding(.bottom, TeleportTheme.Spacing.lg)
             .background(
                 LinearGradient(
-                    colors: [TeleportTheme.Colors.background.opacity(0), TeleportTheme.Colors.background],
+                    colors: [TeleportTheme.Colors.backgroundElevated.opacity(0), TeleportTheme.Colors.backgroundElevated],
                     startPoint: .top,
                     endPoint: .center
                 )
