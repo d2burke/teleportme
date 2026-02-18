@@ -52,14 +52,16 @@ final class SupabaseManager {
         request.httpBody = try JSONEncoder().encode(body)
         request.timeoutInterval = 30
 
-        // Try to get a fresh session token so the server can identify the user.
-        // Falls back to anon key if session refresh fails (results returned but not persisted).
+        // Force-refresh the session token so the server can identify the user.
+        // This is the 401 retry path — the SDK's cached token was stale, so we
+        // explicitly call refreshSession() to get a new one.
+        // Falls back to anon key if refresh fails (results returned but not persisted).
         let accessToken: String
         do {
-            let session = try await shared.client.auth.session
+            let session = try await shared.client.auth.refreshSession()
             accessToken = session.accessToken
         } catch {
-            print("invokeEdgeFunctionDirect: session fetch failed, using anon key: \(error)")
+            print("invokeEdgeFunctionDirect: session refresh failed, using anon key: \(error)")
             accessToken = Secrets.supabaseAnonKey
         }
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")

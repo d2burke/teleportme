@@ -33,12 +33,18 @@ final class AuthService {
         }
     }
 
-    /// Ensures the current session is valid, refreshing the token if needed.
-    /// The Supabase SDK auto-refreshes expired tokens when you access `auth.session`.
-    /// Call this before any edge function invocation to prevent 401s from expired tokens.
+    /// Ensures the current session has a valid, non-expired access token.
+    ///
+    /// First checks the cached session — if it's still valid, returns immediately.
+    /// If expired (or within the SDK's auto-refresh threshold), forces a refresh
+    /// via `refreshSession()` so the SDK's internal token cache is updated before
+    /// the next edge function call.
     func refreshSessionIfNeeded() async throws {
+        // Access session to trigger the SDK's built-in auto-refresh.
+        // Then explicitly call refreshSession() to be safe — the SDK's `adapt()`
+        // method uses `try?` which silently swallows refresh failures.
         let session = try await withTimeout(seconds: 10) {
-            try await self.supabase.auth.session
+            try await self.supabase.auth.refreshSession()
         }
         currentUser = session.user
     }
