@@ -86,7 +86,12 @@ struct OnboardingFlowView: View {
         case .signUp:
             SignUpView()
         case .startType:
-            StartTypeView()
+            ExplorationMethodStepView(
+                startType: $coord.selectedStartType,
+                onContinue: {
+                    coordinator.advanceOnboarding(from: .startType)
+                }
+            )
         case .citySearch:
             CitySearchView()
         case .cityBaseline:
@@ -112,10 +117,57 @@ struct OnboardingFlowView: View {
                 }
             )
         case .generating:
-            GeneratingView()
+            onboardingGeneratingView
         case .recommendations:
             RecommendationsView()
         }
+    }
+
+    /// Bridges the onboarding coordinator state into `ExplorationGeneratingStepView`,
+    /// the single generating view used by both onboarding and new-exploration flows.
+    @ViewBuilder
+    private var onboardingGeneratingView: some View {
+        let compassVibes: [String: Double]? = coordinator.signalWeights.isEmpty
+            ? nil
+            : Dictionary(uniqueKeysWithValues: coordinator.signalWeights.map { ($0.key.rawValue, $0.value) })
+        let constraints: TripConstraints? = coordinator.tripConstraints.hasAny
+            ? coordinator.tripConstraints
+            : nil
+        let heading = HeadingEngine.heading(from: coordinator.signalWeights)
+        let title: String = if !heading.topSignals.isEmpty {
+            "\(heading.emoji) \(heading.name) Trip"
+        } else if let cityName = coordinator.selectedCity?.city.name {
+            "\(cityName) Exploration"
+        } else {
+            "My First Exploration"
+        }
+
+        ExplorationGeneratingStepView(
+            title: title,
+            startType: coordinator.selectedStartType,
+            baselineCityId: coordinator.selectedCityId,
+            preferences: coordinator.preferences,
+            vibeTags: coordinator.selectedVibeIds.isEmpty ? nil : Array(coordinator.selectedVibeIds),
+            userVibeTags: coordinator.preferences.selectedVibeTags,
+            compassVibes: compassVibes,
+            compassConstraints: constraints,
+            onComplete: { response in
+                // Sync evolved heading weights
+                if let evolved = response.evolvedWeights {
+                    coordinator.preferences.signalWeights = evolved
+                    Task { await coordinator.savePreferences() }
+                }
+                // Update reportService for backward compat with RecommendationsView
+                coordinator.reportService.currentReport = response
+                if let userId = coordinator.currentUserId {
+                    CacheManager.shared.save(response, for: .currentReport(userId: userId))
+                }
+                coordinator.advanceOnboarding(from: .generating)
+            },
+            onError: { _ in
+                // ExplorationGeneratingStepView has its own retry button
+            }
+        )
     }
 }
 
@@ -130,12 +182,6 @@ struct MainTabView: View {
         TabView(selection: $coord.selectedTab) {
             Tab("Discover", systemImage: "safari", value: .discover) {
                 DiscoverView()
-            }
-            Tab("Saved", systemImage: "heart", value: .saved) {
-                SavedView()
-            }
-            Tab("Map", systemImage: "map", value: .map) {
-                CityMapView()
             }
             Tab("Profile", systemImage: "person", value: .profile) {
                 ProfileView()

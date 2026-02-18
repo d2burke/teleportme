@@ -217,8 +217,28 @@ struct ReportDetailView: View {
             }
 
             // Compass heading badge (for compass explorations)
-            if let exploration = viewModel.exploration,
-               let compassVibes = exploration.compassVibes, !compassVibes.isEmpty {
+            headingBadge
+        }
+        .padding(.horizontal, TeleportTheme.Spacing.lg)
+        .padding(.top, TeleportTheme.Spacing.sm)
+    }
+
+    // MARK: - Heading Badge
+
+    @ViewBuilder
+    private var headingBadge: some View {
+        if let exploration = viewModel.exploration {
+            // Prefer server-side heading, fall back to client computation
+            if let name = exploration.headingName, let emoji = exploration.headingEmoji {
+                HStack(spacing: TeleportTheme.Spacing.sm) {
+                    Text(emoji)
+                        .font(.system(size: 18))
+                    Text(name)
+                        .font(TeleportTheme.Typography.cardTitle(14))
+                        .foregroundStyle(TeleportTheme.Colors.textPrimary)
+                }
+                .padding(.top, TeleportTheme.Spacing.xs)
+            } else if let compassVibes = exploration.compassVibes, !compassVibes.isEmpty {
                 let heading = HeadingEngine.heading(fromRaw: compassVibes)
                 HStack(spacing: TeleportTheme.Spacing.sm) {
                     Text(heading.emoji)
@@ -230,8 +250,6 @@ struct ReportDetailView: View {
                 .padding(.top, TeleportTheme.Spacing.xs)
             }
         }
-        .padding(.horizontal, TeleportTheme.Spacing.lg)
-        .padding(.top, TeleportTheme.Spacing.sm)
     }
 
     // MARK: - Matches Carousel
@@ -241,25 +259,28 @@ struct ReportDetailView: View {
             HStack(spacing: TeleportTheme.Spacing.md) {
                 ForEach(Array(matches.enumerated()), id: \.1.id) { index, match in
                     ZStack(alignment: .topTrailing) {
-                        CityHeroImage(
-                            imageURL: match.cityImageUrl,
-                            cityName: match.cityName,
-                            subtitle: match.cityCountry,
-                            height: isPostGeneration ? 320 : 280,
-                            matchPercent: match.matchPercent,
-                            rank: match.rank
-                        )
-                        .frame(width: UIScreen.main.bounds.width - 80)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: TeleportTheme.Radius.large)
-                                .strokeBorder(
-                                    selectedMatchIndex == index
-                                        ? TeleportTheme.Colors.accent
-                                        : .clear,
-                                    lineWidth: 2
-                                )
-                        )
-                        .onTapGesture {
+                        NavigationLink(value: cityForMatch(match)) {
+                            CityHeroImage(
+                                imageURL: match.cityImageUrl,
+                                cityName: match.cityName,
+                                subtitle: match.cityCountry,
+                                height: isPostGeneration ? 320 : 280,
+                                matchPercent: match.matchPercent,
+                                rank: match.rank
+                            )
+                            .frame(width: UIScreen.main.bounds.width - 80)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: TeleportTheme.Radius.large)
+                                    .strokeBorder(
+                                        selectedMatchIndex == index
+                                            ? TeleportTheme.Colors.accent
+                                            : .clear,
+                                        lineWidth: 2
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .simultaneousGesture(TapGesture().onEnded {
                             analytics.track("match_card_tapped", screen: screenName, properties: [
                                 "city_id": match.cityId,
                                 "rank": String(match.rank),
@@ -268,7 +289,7 @@ struct ReportDetailView: View {
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 selectedMatchIndex = index
                             }
-                        }
+                        })
 
                         saveButton(cityId: match.cityId)
                             .padding(.top, 72)
@@ -278,6 +299,28 @@ struct ReportDetailView: View {
             }
             .padding(.horizontal, TeleportTheme.Spacing.lg)
         }
+    }
+
+    /// Resolve a CityMatch to a City for navigation.
+    private func cityForMatch(_ match: CityMatch) -> City {
+        // Try to find the full city from the service
+        if let city = coordinator.cityService.allCities.first(where: { $0.id == match.cityId }) {
+            return city
+        }
+        // Fallback: construct a minimal City from match data
+        return City(
+            id: match.cityId,
+            name: match.cityName,
+            fullName: match.cityFullName,
+            country: match.cityCountry,
+            continent: "",
+            latitude: 0,
+            longitude: 0,
+            population: nil,
+            teleportCityScore: nil,
+            summary: nil,
+            imageUrl: match.cityImageUrl
+        )
     }
 
     // MARK: - Comparison Section

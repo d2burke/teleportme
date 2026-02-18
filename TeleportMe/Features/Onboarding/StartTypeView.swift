@@ -1,84 +1,9 @@
 import SwiftUI
 
-struct StartTypeView: View {
-    @Environment(AppCoordinator.self) private var coordinator
-    @State private var appeared = false
-    @State private var screenEnteredAt = Date()
-    private let analytics = AnalyticsService.shared
+// MARK: - Start Type Card (shared component)
 
-    private let options: [(StartType, String, String, String)] = [
-        (.cityILove, "A city I love", "Start with a city you love and why. We'll show you similar ones", "building.2"),
-        (.vibes, "A place that feels like me", "Tell us all the specific feels and values that are important to you", "hand.thumbsup"),
-        (.myWords, "My own words", "Describe your ideal city in chat and we'll find matches for you", "bubble.left"),
-    ]
-
-    var body: some View {
-        VStack(spacing: TeleportTheme.Spacing.xl) {
-            Spacer()
-
-            Text("All set! How would you\nlike to get started?")
-                .font(TeleportTheme.Typography.title(24))
-                .foregroundStyle(TeleportTheme.Colors.textPrimary)
-                .multilineTextAlignment(.center)
-
-            VStack(spacing: TeleportTheme.Spacing.md) {
-                ForEach(Array(options.enumerated()), id: \.0) { index, option in
-                    StartTypeCard(
-                        type: option.0,
-                        title: option.1,
-                        description: option.2,
-                        icon: option.3,
-                        isSelected: coordinator.selectedStartType == option.0
-                    ) {
-                        let typeKey = switch option.0 {
-                        case .cityILove: "city_i_love"
-                        case .vibes: "vibes"
-                        case .myWords: "own_words"
-                        }
-                        analytics.trackButtonTap(typeKey, screen: "start_type")
-                        analytics.track("start_type_selected", screen: "start_type", properties: ["type": typeKey])
-                        analytics.track("onboarding_step_completed", screen: "start_type", properties: [
-                            "step": "start_type",
-                            "duration_ms": String(Int(Date().timeIntervalSince(screenEnteredAt) * 1000)),
-                            "selected_type": typeKey
-                        ])
-
-                        coordinator.selectedStartType = option.0
-                        coordinator.preferences.startType = option.0
-
-                        // For MVP, "city I love" path goes to city search
-                        // Other paths can be wired up later
-                        coordinator.advanceOnboarding(from: .startType)
-                    }
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(
-                        .spring(response: 0.5, dampingFraction: 0.8)
-                            .delay(Double(index) * 0.1),
-                        value: appeared
-                    )
-                }
-            }
-            .padding(.horizontal, TeleportTheme.Spacing.lg)
-
-            Spacer()
-        }
-        .background(TeleportTheme.Colors.background)
-        .toolbar(.hidden, for: .navigationBar)
-        .onAppear {
-            screenEnteredAt = Date()
-            analytics.trackScreenView("start_type")
-            appeared = true
-        }
-        .onDisappear {
-            let ms = Int(Date().timeIntervalSince(screenEnteredAt) * 1000)
-            analytics.trackScreenExit("start_type", durationMs: ms, exitType: "advanced")
-        }
-    }
-}
-
-// MARK: - Start Type Card
-
+/// Reusable card for displaying a start-type option (city I love, compass, my own words).
+/// Used by `ExplorationMethodStepView` in both onboarding and new-exploration flows.
 struct StartTypeCard: View {
     let type: StartType
     let title: String
@@ -140,13 +65,7 @@ struct StartTypeCard: View {
     }
 }
 
-// MARK: - Previews
-
-#Preview("Start Type Selection") {
-    PreviewContainer {
-        StartTypeView()
-    }
-}
+// MARK: - Preview
 
 #Preview("Start Type Card") {
     StartTypeCard(

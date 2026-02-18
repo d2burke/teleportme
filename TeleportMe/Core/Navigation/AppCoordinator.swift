@@ -13,8 +13,6 @@ enum AppScreen {
 /// Tabs in the main TabView, selectable via deep link.
 enum AppTab: String, Hashable {
     case discover
-    case saved
-    case map
     case profile
     case search
 }
@@ -23,7 +21,7 @@ enum AppTab: String, Hashable {
 /// Supports: https://getteleport.me/profile  AND  teleportme://profile
 enum DeepLink {
     case authCallback(URL)   // /auth/callback – Supabase PKCE exchange
-    case tab(AppTab)         // /profile, /discover, /saved, /map
+    case tab(AppTab)         // /profile, /discover, /search
 
     init?(url: URL) {
         // For custom scheme (teleportme://profile), the route is in `host`.
@@ -43,10 +41,6 @@ enum DeepLink {
             self = .tab(.profile)
         case "discover":
             self = .tab(.discover)
-        case "saved":
-            self = .tab(.saved)
-        case "map":
-            self = .tab(.map)
         case "search":
             self = .tab(.search)
         default:
@@ -131,20 +125,9 @@ final class AppCoordinator {
     func advanceOnboarding(from step: OnboardingStep) {
         // Persist preferences to Supabase when leaving the constraints step
         if step == .constraints {
-            // Infer preferences from signal weights for backward compat
-            let inferred = HeadingEngine.inferPreferences(from: signalWeights)
-            preferences = UserPreferences(
-                startType: preferences.startType,
-                costPreference: inferred.cost,
-                climatePreference: inferred.climate,
-                culturePreference: inferred.culture,
-                jobMarketPreference: inferred.jobMarket,
-                safetyPreference: inferred.safety,
-                commutePreference: inferred.commute,
-                healthcarePreference: inferred.healthcare,
-                selectedVibeTags: preferences.selectedVibeTags,
-                signalWeights: preferences.signalWeights
-            )
+            // Save signal weights to preferences (server handles scoring)
+            let rawWeights = Dictionary(uniqueKeysWithValues: signalWeights.map { ($0.key.rawValue, $0.value) })
+            preferences.signalWeights = rawWeights
             Task { await savePreferences() }
         }
 
@@ -246,63 +229,6 @@ final class AppCoordinator {
         if !previewMode {
             try? await authService.updateProfile(currentCityId: cityId)
         }
-    }
-
-    // MARK: - Generate Report (Onboarding)
-
-    /// Generates a report during onboarding. This creates both a legacy report AND a new Exploration.
-    /// The exploration title defaults to "[CityName] Exploration" based on the selected city.
-    func generateReport() async throws -> GenerateReportResponse {
-        let userId = authService.currentUser?.id.uuidString
-
-        // Build a default exploration title (use heading if compass mode)
-        let defaultTitle: String
-        if !signalWeights.isEmpty {
-            let heading = HeadingEngine.heading(from: signalWeights)
-            if !heading.topSignals.isEmpty {
-                defaultTitle = "\(heading.emoji) \(heading.name) Trip"
-            } else {
-                defaultTitle = "Compass Exploration"
-            }
-        } else {
-            let cityName = selectedCity?.city.name ?? "My First"
-            defaultTitle = "\(cityName) Exploration"
-        }
-
-        // Build compass vibes dict for the edge function
-        let compassVibesDict: [String: Double]? = signalWeights.isEmpty
-            ? nil
-            : Dictionary(uniqueKeysWithValues: signalWeights.map { ($0.key.rawValue, $0.value) })
-
-        let compassConstraintsParam: TripConstraints? = tripConstraints.hasAny ? tripConstraints : nil
-
-        // Route through ExplorationService (which calls the same edge function)
-        let response = try await explorationService.generateExploration(
-            title: defaultTitle,
-            startType: selectedStartType,
-            baselineCityId: selectedCityId,
-            preferences: preferences,
-            vibeTags: selectedVibeIds.isEmpty ? nil : Array(selectedVibeIds),
-            userVibeTags: preferences.selectedVibeTags,
-            compassVibes: compassVibesDict,
-            compassConstraints: compassConstraintsParam,
-            userId: userId
-        )
-
-        // Also set on reportService for backward compat with existing views
-        reportService.currentReport = response
-        if let userId {
-            CacheManager.shared.save(response, for: .currentReport(userId: userId))
-        }
-
-        // Evolve heading with trip vibes (onboarding path)
-        if !signalWeights.isEmpty {
-            let existing = preferences.signalWeights ?? [:]
-            preferences.signalWeights = HeadingEngine.evolveHeading(existing: existing, tripVibes: signalWeights)
-            Task { await savePreferences() }
-        }
-
-        return response
     }
 
     // MARK: - Save Preferences

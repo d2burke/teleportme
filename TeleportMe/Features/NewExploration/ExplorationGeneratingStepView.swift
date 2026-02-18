@@ -138,6 +138,16 @@ struct ExplorationGeneratingStepView: View {
 
         let userId = coordinator.currentUserId
 
+        // Ensure session is fresh before calling edge functions.
+        // The SDK's fetchWithAuth uses `try? await auth.session.accessToken` —
+        // if the token is expired and refresh fails silently, no Authorization
+        // header is sent and the Supabase gateway returns 401.
+        do {
+            try await coordinator.authService.refreshSessionIfNeeded()
+        } catch {
+            print("Session refresh failed (continuing anyway): \(error)")
+        }
+
         do {
             let response = try await coordinator.explorationService.generateExploration(
                 title: title,

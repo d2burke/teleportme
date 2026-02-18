@@ -74,12 +74,27 @@ final class ReportService {
                 )
             )
 
-            let response: GenerateReportResponse = try await withTimeout(seconds: 30) {
-                try await self.supabase.functions
-                    .invoke(
+            let response: GenerateReportResponse
+            do {
+                response = try await withTimeout(seconds: 30) {
+                    try await self.supabase.functions
+                        .invoke(
+                            "generate-report",
+                            options: .init(body: body)
+                        )
+                }
+            } catch let fnError as FunctionsError {
+                // The SDK's fetchWithAuth overwrites our Authorization header with the
+                // (possibly expired) session token. Bypass the SDK entirely on 401.
+                if case .httpError(code: 401, _) = fnError {
+                    print("generate-report 401 — retrying via direct URLSession")
+                    response = try await SupabaseManager.invokeEdgeFunctionDirect(
                         "generate-report",
-                        options: .init(body: body)
+                        body: body
                     )
+                } else {
+                    throw fnError
+                }
             }
 
             currentReport = response

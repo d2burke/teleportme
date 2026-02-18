@@ -532,6 +532,10 @@ struct ExplorationDetailView: View {
                     freeText: nil,
                     compassVibes: nil,
                     compassConstraints: nil,
+                    headingName: nil,
+                    headingEmoji: nil,
+                    headingColor: nil,
+                    headingTopSignals: nil,
                     createdAt: Date(),
                     updatedAt: Date()
                 )

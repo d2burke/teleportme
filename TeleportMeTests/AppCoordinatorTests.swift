@@ -72,24 +72,16 @@ struct DeepLinkTests {
         }
     }
 
-    @Test func httpsSavedLink() {
+    @Test func httpsSavedLink_removedTab_returnsNil() {
         let url = URL(string: "https://getteleport.me/saved")!
         let link = DeepLink(url: url)
-        if case .tab(let tab) = link {
-            #expect(tab == .saved)
-        } else {
-            #expect(Bool(false), "Expected .tab(.saved)")
-        }
+        #expect(link == nil, "saved tab was removed — deep link should return nil")
     }
 
-    @Test func httpsMapLink() {
+    @Test func httpsMapLink_removedTab_returnsNil() {
         let url = URL(string: "https://getteleport.me/map")!
         let link = DeepLink(url: url)
-        if case .tab(let tab) = link {
-            #expect(tab == .map)
-        } else {
-            #expect(Bool(false), "Expected .tab(.map)")
-        }
+        #expect(link == nil, "map tab was removed — deep link should return nil")
     }
 
     @Test func httpsSearchLink() {
@@ -157,8 +149,6 @@ struct AppScreenTests {
 
     @Test func appTabRawValues() {
         #expect(AppTab.discover.rawValue == "discover")
-        #expect(AppTab.saved.rawValue == "saved")
-        #expect(AppTab.map.rawValue == "map")
         #expect(AppTab.profile.rawValue == "profile")
         #expect(AppTab.search.rawValue == "search")
     }
@@ -334,10 +324,10 @@ struct AppCoordinatorTests {
         let coordinator = AppCoordinator()
         coordinator.previewMode = true
         coordinator.currentScreen = .onboarding
-        let url = URL(string: "https://getteleport.me/saved")!
+        let url = URL(string: "https://getteleport.me/profile")!
         coordinator.handleDeepLink(url)
         // Tab should be queued even if not on main
-        #expect(coordinator.selectedTab == .saved)
+        #expect(coordinator.selectedTab == .profile)
     }
 
     @Test func handleDeepLink_unknownURL_noChange() {
@@ -354,9 +344,9 @@ struct AppCoordinatorTests {
         let coordinator = AppCoordinator()
         coordinator.previewMode = true
         coordinator.currentScreen = .main
-        let url = URL(string: "teleportme://map")!
+        let url = URL(string: "teleportme://search")!
         coordinator.handleDeepLink(url)
-        #expect(coordinator.selectedTab == .map)
+        #expect(coordinator.selectedTab == .search)
     }
 
     // MARK: - State Reset (signOut behavior)
@@ -392,9 +382,9 @@ struct AppCoordinatorTests {
         #expect(coordinator.navigationPath.isEmpty)
     }
 
-    // MARK: - advanceOnboarding infers preferences from signal weights
+    // MARK: - advanceOnboarding saves signal weights to preferences
 
-    @Test func advanceFromConstraints_infersPreferences() {
+    @Test func advanceFromConstraints_savesSignalWeights() {
         let coordinator = AppCoordinator()
         coordinator.previewMode = true
         coordinator.signalWeights = [
@@ -402,11 +392,13 @@ struct AppCoordinatorTests {
             .cost: 2.0,
             .safety: 1.0,
         ]
-        let oldCost = coordinator.preferences.costPreference
+        #expect(coordinator.preferences.signalWeights == nil || coordinator.preferences.signalWeights!.isEmpty, "Signal weights should start empty")
         coordinator.advanceOnboarding(from: .constraints)
-        // After advancing from constraints, preferences should be inferred from signal weights
-        // The cost preference should change from the default 5.0
-        #expect(coordinator.preferences.costPreference != oldCost, "Cost preference should be inferred from signal weights")
+        // After advancing from constraints, raw signal weights should be saved to preferences
+        let saved = coordinator.preferences.signalWeights
+        #expect(saved?["climate"] == 3.0, "Climate weight should be saved")
+        #expect(saved?["cost"] == 2.0, "Cost weight should be saved")
+        #expect(saved?["safety"] == 1.0, "Safety weight should be saved")
     }
 
     // MARK: - Preview Mode

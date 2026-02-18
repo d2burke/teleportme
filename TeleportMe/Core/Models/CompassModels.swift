@@ -83,6 +83,7 @@ enum CompassSignal: String, CaseIterable, Codable, Identifiable, Hashable {
     }
 
     /// Maps this signal to the primary DB city_scores category name.
+    /// Display-only on the client — actual scoring is server-authoritative (generate-report edge function).
     var scoreCategory: String {
         switch self {
         case .climate: "Environmental Quality"

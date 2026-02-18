@@ -320,6 +320,10 @@ struct Exploration: Codable, Identifiable, Hashable {
     let freeText: String?
     let compassVibes: [String: Double]?
     let compassConstraints: TripConstraints?
+    let headingName: String?
+    let headingEmoji: String?
+    let headingColor: String?
+    let headingTopSignals: [String]?
     let createdAt: Date?
     var updatedAt: Date?
 
@@ -333,6 +337,10 @@ struct Exploration: Codable, Identifiable, Hashable {
         case freeText = "free_text"
         case compassVibes = "compass_vibes"
         case compassConstraints = "compass_constraints"
+        case headingName = "heading_name"
+        case headingEmoji = "heading_emoji"
+        case headingColor = "heading_color"
+        case headingTopSignals = "heading_top_signals"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -425,6 +433,15 @@ struct ComparisonMetric: Codable {
     }
 }
 
+// MARK: - Heading Info (server-authoritative)
+
+struct HeadingInfo: Codable {
+    let name: String
+    let emoji: String
+    let color: String
+    let topSignals: [String]
+}
+
 // MARK: - Edge Function Response
 
 struct GenerateReportResponse: Codable {
@@ -432,19 +449,24 @@ struct GenerateReportResponse: Codable {
     let explorationId: String?
     let currentCity: CurrentCityInfo?
     let matches: [CityMatch]
+    let heading: HeadingInfo?
+    let evolvedWeights: [String: Double]?
 
-    init(reportId: String?, explorationId: String? = nil, currentCity: CurrentCityInfo?, matches: [CityMatch]) {
+    init(reportId: String?, explorationId: String? = nil, currentCity: CurrentCityInfo?, matches: [CityMatch], heading: HeadingInfo? = nil, evolvedWeights: [String: Double]? = nil) {
         self.reportId = reportId
         self.explorationId = explorationId
         self.currentCity = currentCity
         self.matches = matches
+        self.heading = heading
+        self.evolvedWeights = evolvedWeights
     }
 
     enum CodingKeys: String, CodingKey {
-        case matches
+        case matches, heading
         case reportId = "report_id"
         case explorationId = "exploration_id"
         case currentCity = "current_city"
+        case evolvedWeights = "evolved_weights"
     }
 }
 

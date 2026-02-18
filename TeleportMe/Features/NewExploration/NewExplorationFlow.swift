@@ -32,6 +32,7 @@ struct NewExplorationFlow: View {
     @State private var signalWeights: [CompassSignal: Double] = [:]
     @State private var tripConstraints: TripConstraints = TripConstraints()
     @State private var generatedResponse: GenerateReportResponse? = nil
+    @State private var didLoadInitialState = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -114,8 +115,11 @@ struct NewExplorationFlow: View {
                         onComplete: { response in
                             generatedResponse = response
 
-                            // Evolve the user's heading with these trip vibes
-                            Task { await evolveHeading() }
+                            // Server has already evolved the heading — sync local state
+                            if let evolved = response.evolvedWeights {
+                                coordinator.preferences.signalWeights = evolved
+                                Task { await coordinator.savePreferences() }
+                            }
 
                             // Replace generating with results (no back swipe to loading)
                             if !navigationPath.isEmpty {
@@ -138,19 +142,19 @@ struct NewExplorationFlow: View {
         }
         .interactiveDismissDisabled(generatedResponse != nil) // Don't dismiss after results
         .onAppear {
+            // Guard against SwiftUI re-firing .onAppear during NavigationStack
+            // pushes — re-running this would wipe signalWeights the user just set.
+            guard !didLoadInitialState else { return }
+            didLoadInitialState = true
+
             flowStartedAt = Date()
             analytics.track("exploration_flow_started", screen: "new_exploration_name", properties: ["source": "modal"])
-            // Pre-fill with user's saved preferences if available
+            // Pre-fill with user's saved preferences (scalar weights like cost, climate, etc.)
             preferences = coordinator.preferences
-            // Pre-load signal weights from saved heading
-            if let savedWeights = coordinator.preferences.signalWeights {
-                signalWeights = HeadingEngine.heading(fromRaw: savedWeights).topSignals.isEmpty
-                    ? [:]
-                    : Dictionary(uniqueKeysWithValues: savedWeights.compactMap { key, value in
-                        guard let signal = CompassSignal(rawValue: key) else { return nil }
-                        return (signal, value)
-                    })
-            }
+            // Signal weights start EMPTY — each exploration is a fresh compass.
+            // The evolved heading weights are a running personality average and should
+            // NOT pre-populate the compass, otherwise every exploration converges to the
+            // same results (e.g. Berlin keeps appearing).
         }
         .onDisappear {
             if generatedResponse != nil {
@@ -193,14 +197,4 @@ struct NewExplorationFlow: View {
         return trimmed
     }
 
-    /// After a successful exploration, blend trip vibes into the user's persistent heading.
-    private func evolveHeading() async {
-        guard !signalWeights.isEmpty else { return }
-
-        let existing = coordinator.preferences.signalWeights ?? [:]
-        let evolved = HeadingEngine.evolveHeading(existing: existing, tripVibes: signalWeights)
-
-        coordinator.preferences.signalWeights = evolved
-        await coordinator.savePreferences()
-    }
 }

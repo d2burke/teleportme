@@ -247,8 +247,9 @@ struct ProfileView: View {
                 }
                 .buttonStyle(.plain)
 
-                Button {
-                    coordinator.selectedTab = .saved
+                NavigationLink {
+                    SavedView()
+                        .navigationTitle("Saved Cities")
                 } label: {
                     settingsRow(icon: "heart.circle", title: "Saved Cities")
                 }

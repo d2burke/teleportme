@@ -56,17 +56,8 @@ final class ClipCoordinator {
         currentScreen = .generating
         error = nil
 
-        // Infer preferences from signal weights for backward compat
-        let inferred = HeadingEngine.inferPreferences(from: signalWeights)
-        preferences = UserPreferences(
-            costPreference: inferred.cost,
-            climatePreference: inferred.climate,
-            culturePreference: inferred.culture,
-            jobMarketPreference: inferred.jobMarket,
-            safetyPreference: inferred.safety,
-            commutePreference: inferred.commute,
-            healthcarePreference: inferred.healthcare
-        )
+        // Use default preferences — server uses compass_vibes for scoring in compass mode
+        preferences = .defaults
 
         // Build compass vibes dict
         let compassVibes: [String: Double] = Dictionary(

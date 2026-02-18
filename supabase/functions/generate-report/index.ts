@@ -31,6 +31,81 @@ interface RequestBody {
   };
 }
 
+// ------------------------------------------------------------------
+// Heading Personalities — 28 pairs keyed by sorted top-2 signals
+// Server-authoritative: mirrors HeadingEngine.swift for multi-platform consistency
+// ------------------------------------------------------------------
+interface HeadingInfo {
+  name: string;
+  emoji: string;
+  color: string;
+  topSignals: string[];
+}
+
+const signalColors: Record<string, string> = {
+  climate: "E8855D", cost: "4ECB71", culture: "D4A056", safety: "5B9BD5",
+  career: "9B6FB6", nature: "1ABC9C", food: "E6922E", nightlife: "8B7EC8",
+};
+
+const headingPersonalities: Record<string, { name: string; emoji: string }> = {
+  "climate+cost": { name: "Nomad Soul", emoji: "🌴" },
+  "climate+culture": { name: "Sunset Chaser", emoji: "🌅" },
+  "climate+nature": { name: "Tropic Explorer", emoji: "🦜" },
+  "climate+safety": { name: "Warm Harbor", emoji: "🏝️" },
+  "climate+food": { name: "Spice Route", emoji: "🌶️" },
+  "climate+nightlife": { name: "Moonlit Wanderer", emoji: "🌙" },
+  "climate+career": { name: "Sun & Hustle", emoji: "🌞" },
+  "cost+culture": { name: "Free Spirit", emoji: "✨" },
+  "cost+nature": { name: "Off-Grid Dreamer", emoji: "🏕️" },
+  "cost+food": { name: "Street Food Soul", emoji: "🥘" },
+  "cost+safety": { name: "Smart Traveler", emoji: "🎒" },
+  "cost+nightlife": { name: "Budget Nighthawk", emoji: "🦇" },
+  "career+cost": { name: "Lean Builder", emoji: "🔧" },
+  "culture+safety": { name: "Old World Seeker", emoji: "🏛️" },
+  "culture+food": { name: "Bon Vivant", emoji: "🥂" },
+  "culture+nightlife": { name: "Night Owl", emoji: "🦉" },
+  "culture+nature": { name: "Renaissance Soul", emoji: "🎨" },
+  "career+culture": { name: "Urban Achiever", emoji: "🌃" },
+  "career+safety": { name: "Career Builder", emoji: "📈" },
+  "nature+safety": { name: "Quiet Strength", emoji: "🌿" },
+  "food+safety": { name: "Comfort Seeker", emoji: "🍵" },
+  "nightlife+safety": { name: "Safe Nighthawk", emoji: "🎶" },
+  "career+nature": { name: "Mountain Climber", emoji: "⛰️" },
+  "career+food": { name: "Power Lunch", emoji: "🏙️" },
+  "career+nightlife": { name: "After Hours", emoji: "🍸" },
+  "food+nature": { name: "Forager", emoji: "🌾" },
+  "nature+nightlife": { name: "Wild & Free", emoji: "🐺" },
+  "food+nightlife": { name: "Late Night Foodie", emoji: "🍷" },
+};
+
+/** Resolve a heading personality from compass signal weights. */
+function resolveHeading(compassVibes: Record<string, number>): HeadingInfo | null {
+  const sorted = Object.entries(compassVibes)
+    .filter(([_, w]) => w > 0)
+    .sort((a, b) => b[1] - a[1]);
+  if (sorted.length < 2) return null;
+  const s1 = sorted[0][0];
+  const s2 = sorted[1][0];
+  const pair = [s1, s2].sort().join("+");
+  const p = headingPersonalities[pair];
+  if (!p) return null;
+  return { name: p.name, emoji: p.emoji, color: signalColors[s1] ?? "FFFFFF", topSignals: [s1, s2] };
+}
+
+/** Evolve existing heading weights with new trip vibes (70% old + 30% new). */
+function evolveHeadingWeights(
+  existing: Record<string, number>,
+  tripVibes: Record<string, number>,
+  retainRatio = 0.7
+): Record<string, number> {
+  const result = { ...existing };
+  for (const [signal, weight] of Object.entries(tripVibes)) {
+    const old = result[signal] ?? 0;
+    result[signal] = old * retainRatio + weight * (1.0 - retainRatio);
+  }
+  return result;
+}
+
 interface CityVibeTagRow {
   city_id: string;
   vibe_tag_id: string;
@@ -216,12 +291,12 @@ serve(async (req) => {
     const signalVibeTagMap: Record<string, string[]> = {
       climate: ["Beach Life", "Outdoorsy"],
       cost: ["Affordable", "Digital Nomad"],
-      culture: ["Arts & Music", "Historic", "Bohemian", "Cosmopolitan"],
-      safety: ["Family Friendly", "LGBTQ+ Friendly"],
-      career: ["Startup Hub", "Student Friendly"],
-      nature: ["Outdoorsy", "Beach Life", "Eco-Conscious"],
+      culture: ["Arts & Music", "Historic", "Bohemian", "Cosmopolitan", "Walkable"],
+      safety: ["Family Friendly", "LGBTQ+ Friendly", "Quiet & Peaceful"],
+      career: ["Startup Hub", "Student Friendly", "Fast-Paced", "Cosmopolitan"],
+      nature: ["Outdoorsy", "Beach Life", "Eco-Conscious", "Quiet & Peaceful"],
       food: ["Foodie", "Coffee Culture"],           // vibe-only, no category score
-      nightlife: ["Nightlife", "Fast-Paced"],       // vibe-only, no category score
+      nightlife: ["Nightlife", "Fast-Paced", "Cosmopolitan"],  // vibe-only, no category score
     };
 
     // Updated category map — food and nightlife NO LONGER map to "Leisure & Culture"
@@ -662,7 +737,43 @@ Pick 3 to 5 cities. Return valid JSON only, no markdown.`;
     ).filter(Boolean);
 
     // ------------------------------------------------------------------
-    // 6. Save to DB — write to both explorations (new) and city_reports (legacy)
+    // 6. Compute heading personality & evolve user heading
+    // ------------------------------------------------------------------
+    let headingInfo: HeadingInfo | null = null;
+    let evolvedWeights: Record<string, number> | null = null;
+
+    if (isCompassMode) {
+      headingInfo = resolveHeading(compass_vibes!);
+
+      // Evolve the user's persistent heading weights
+      if (userId) {
+        // Fetch existing signal_weights from user_preferences
+        const { data: prefRow } = await supabase
+          .from("user_preferences")
+          .select("signal_weights")
+          .eq("user_id", userId)
+          .single();
+
+        const existingWeights: Record<string, number> = (prefRow as { signal_weights?: Record<string, number> })?.signal_weights ?? {};
+        evolvedWeights = evolveHeadingWeights(existingWeights, compass_vibes!);
+
+        // Compute the evolved heading for persistence
+        const evolvedHeading = resolveHeading(evolvedWeights);
+
+        // Write evolved weights + heading to user_preferences
+        await supabase
+          .from("user_preferences")
+          .update({
+            signal_weights: evolvedWeights,
+            heading_name: evolvedHeading?.name ?? null,
+            heading_emoji: evolvedHeading?.emoji ?? null,
+          })
+          .eq("user_id", userId);
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // 7. Save to DB — write to both explorations (new) and city_reports (legacy)
     // ------------------------------------------------------------------
     let reportId: string | null = null;
     let explorationId: string | null = null;
@@ -687,11 +798,17 @@ Pick 3 to 5 cities. Return valid JSON only, no markdown.`;
           vibe_tags: vibe_tags ?? [],
       };
 
-      // Save compass data when in compass mode
+      // Save compass data + heading when in compass mode
       if (isCompassMode) {
         explorationInsert.compass_vibes = compass_vibes;
         if (compass_constraints) {
           explorationInsert.compass_constraints = compass_constraints;
+        }
+        if (headingInfo) {
+          explorationInsert.heading_name = headingInfo.name;
+          explorationInsert.heading_emoji = headingInfo.emoji;
+          explorationInsert.heading_color = headingInfo.color;
+          explorationInsert.heading_top_signals = headingInfo.topSignals;
         }
       }
 
@@ -727,7 +844,7 @@ Pick 3 to 5 cities. Return valid JSON only, no markdown.`;
     }
 
     // ------------------------------------------------------------------
-    // 7. Return response
+    // 8. Return response
     // ------------------------------------------------------------------
     const response = {
       report_id: reportId,
@@ -740,6 +857,8 @@ Pick 3 to 5 cities. Return valid JSON only, no markdown.`;
           }
         : null,
       matches,
+      heading: headingInfo,
+      evolved_weights: evolvedWeights,
     };
 
     return new Response(JSON.stringify(response), {

@@ -2,116 +2,46 @@ import SwiftUI
 
 // MARK: - Exploration Method Step
 
+/// Reuses `StartTypeCard` from the onboarding flow for a consistent look-and-feel.
+/// Single tap selects the method AND advances — no separate "Continue" button needed.
 struct ExplorationMethodStepView: View {
     @Binding var startType: StartType
     let onContinue: () -> Void
 
-    var body: some View {
-        ScrollView {
-            VStack(spacing: TeleportTheme.Spacing.xl) {
-                // Header
-                VStack(spacing: TeleportTheme.Spacing.sm) {
-                    Text("How do you want\nto explore?")
-                        .font(TeleportTheme.Typography.title(26))
-                        .foregroundStyle(TeleportTheme.Colors.textPrimary)
-                        .multilineTextAlignment(.center)
+    private let options: [(StartType, String, String, String, Bool)] = [
+        (.cityILove, "A City I Love", "Start from a city you know and find similar ones that match your vibe.", "building.2", true),
+        (.vibes, "Compass", "Set your signals and constraints to find cities that match your vibe.", "safari", true),
+        (.myWords, "My Own Words", "Describe your ideal city in your own words and let AI find it.", "text.quote", false),
+    ]
 
-                    Text("Choose how you'd like to discover new cities.")
-                        .font(TeleportTheme.Typography.body(15))
-                        .foregroundStyle(TeleportTheme.Colors.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, TeleportTheme.Spacing.xl)
-
-                // Method cards
-                VStack(spacing: TeleportTheme.Spacing.md) {
-                    MethodCard(
-                        icon: "heart.fill",
-                        title: "A City I Love",
-                        description: "Start from a city you know and find similar ones that match your vibe.",
-                        isSelected: startType == .cityILove,
-                        isAvailable: true
-                    ) {
-                        startType = .cityILove
-                    }
-
-                    MethodCard(
-                        icon: "safari",
-                        title: "Compass",
-                        description: "Set your signals and constraints to find cities that match your vibe.",
-                        isSelected: startType == .vibes,
-                        isAvailable: true
-                    ) {
-                        startType = .vibes
-                    }
-
-                    MethodCard(
-                        icon: "text.quote",
-                        title: "My Own Words",
-                        description: "Describe your ideal city in your own words and let AI find it.",
-                        isSelected: startType == .myWords,
-                        isAvailable: false
-                    ) {
-                        // Coming soon
-                    }
-                }
-                .padding(.horizontal, TeleportTheme.Spacing.lg)
-            }
-            .padding(.bottom, 100) // Space for button
-        }
-        .background(TeleportTheme.Colors.backgroundElevated)
-        .navigationBarTitleDisplayMode(.inline)
-        .overlay(alignment: .bottom) {
-            TeleportButton(title: "Continue", icon: "arrow.right") {
-                onContinue()
-            }
-            .disabled(startType == .myWords) // Only myWords is still unavailable
-            .padding(.horizontal, TeleportTheme.Spacing.lg)
-            .padding(.bottom, TeleportTheme.Spacing.lg)
-            .background(
-                LinearGradient(
-                    colors: [TeleportTheme.Colors.backgroundElevated.opacity(0), TeleportTheme.Colors.backgroundElevated],
-                    startPoint: .top,
-                    endPoint: .center
-                )
-            )
-        }
-    }
-}
-
-// MARK: - Method Card
-
-private struct MethodCard: View {
-    let icon: String
-    let title: String
-    let description: String
-    let isSelected: Bool
-    let isAvailable: Bool
-    let action: () -> Void
+    @State private var appeared = false
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: TeleportTheme.Spacing.md) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundStyle(
-                        isAvailable
-                            ? (isSelected ? TeleportTheme.Colors.accent : TeleportTheme.Colors.textSecondary)
-                            : TeleportTheme.Colors.textTertiary
-                    )
-                    .frame(width: 40)
+        VStack(spacing: TeleportTheme.Spacing.xl) {
+            Spacer()
 
-                VStack(alignment: .leading, spacing: TeleportTheme.Spacing.xs) {
-                    HStack {
-                        Text(title)
-                            .font(TeleportTheme.Typography.cardTitle())
-                            .foregroundStyle(
-                                isAvailable
-                                    ? TeleportTheme.Colors.textPrimary
-                                    : TeleportTheme.Colors.textTertiary
-                            )
+            Text("How do you want\nto explore?")
+                .font(TeleportTheme.Typography.title(24))
+                .foregroundStyle(TeleportTheme.Colors.textPrimary)
+                .multilineTextAlignment(.center)
 
-                        if !isAvailable {
+            VStack(spacing: TeleportTheme.Spacing.md) {
+                ForEach(Array(options.enumerated()), id: \.0) { index, option in
+                    StartTypeCard(
+                        type: option.0,
+                        title: option.1,
+                        description: option.2,
+                        icon: option.3,
+                        isSelected: startType == option.0
+                    ) {
+                        guard option.4 else { return } // Skip unavailable (myWords)
+                        startType = option.0
+                        onContinue()
+                    }
+                    .opacity(option.4 ? 1 : 0.5)
+                    .disabled(!option.4)
+                    .overlay(alignment: .topTrailing) {
+                        if !option.4 {
                             Text("Coming Soon")
                                 .font(TeleportTheme.Typography.caption(11))
                                 .foregroundStyle(TeleportTheme.Colors.textTertiary)
@@ -119,43 +49,24 @@ private struct MethodCard: View {
                                 .padding(.vertical, 2)
                                 .background(TeleportTheme.Colors.surfaceElevated)
                                 .clipShape(Capsule())
+                                .padding(TeleportTheme.Spacing.sm)
                         }
                     }
-
-                    Text(description)
-                        .font(TeleportTheme.Typography.body(14))
-                        .foregroundStyle(
-                            isAvailable
-                                ? TeleportTheme.Colors.textSecondary
-                                : TeleportTheme.Colors.textTertiary
-                        )
-                        .lineLimit(2)
-                }
-
-                Spacer()
-
-                if isAvailable {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 22))
-                        .foregroundStyle(
-                            isSelected ? TeleportTheme.Colors.accent : TeleportTheme.Colors.border
-                        )
-                }
-            }
-            .padding(TeleportTheme.Spacing.md)
-            .background(TeleportTheme.Colors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium))
-            .overlay {
-                RoundedRectangle(cornerRadius: TeleportTheme.Radius.medium)
-                    .strokeBorder(
-                        isSelected && isAvailable
-                            ? TeleportTheme.Colors.accent
-                            : TeleportTheme.Colors.border,
-                        lineWidth: isSelected && isAvailable ? 2 : 1
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 20)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.8)
+                            .delay(Double(index) * 0.1),
+                        value: appeared
                     )
+                }
             }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
+
+            Spacer()
         }
-        .buttonStyle(.plain)
-        .disabled(!isAvailable)
+        .background(TeleportTheme.Colors.backgroundElevated)
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { appeared = true }
     }
 }

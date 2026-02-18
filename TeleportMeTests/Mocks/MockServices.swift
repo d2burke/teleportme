@@ -267,6 +267,10 @@ enum TestFixtures {
             freeText: nil,
             compassVibes: compassVibes,
             compassConstraints: compassConstraints,
+            headingName: nil,
+            headingEmoji: nil,
+            headingColor: nil,
+            headingTopSignals: nil,
             createdAt: Date(),
             updatedAt: Date()
         )

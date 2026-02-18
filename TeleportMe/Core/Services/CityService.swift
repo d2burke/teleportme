@@ -1,6 +1,23 @@
 import Foundation
 import Supabase
 
+// MARK: - City Vibe Tag Join (for Supabase select with join)
+
+/// Decodes the joined query: `city_vibe_tags.select("city_id, vibe_tags(name)")`
+private struct CityVibeTagJoin: Decodable {
+    let cityId: String
+    let vibeTags: VibeTagName
+
+    struct VibeTagName: Decodable {
+        let name: String
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case cityId = "city_id"
+        case vibeTags = "vibe_tags"
+    }
+}
+
 // MARK: - City Service
 
 @Observable
@@ -20,6 +37,9 @@ final class CityService {
 
     /// In-memory cache of city insights keyed by cityId
     private var insightsCache: [String: CityInsights] = [:]
+
+    /// In-memory cache of vibe tag names per city (e.g. ["Beach Life", "Outdoorsy"])
+    private(set) var vibeTagCache: [String: Set<String>] = [:]
 
     /// Trending cities shown on the search screen
     var trendingCityIds: [String] {
@@ -245,9 +265,9 @@ final class CityService {
             if !cached.isStale { return }
         }
 
-        // Fetch all scores from the DB
+        // Fetch all scores and vibe tags from the DB in parallel
         do {
-            let allScores: [CityScore] = try await withTimeout(seconds: 30) {
+            async let scoresFetch: [CityScore] = withTimeout(seconds: 30) {
                 try await self.supabase
                     .from("city_scores")
                     .select()
@@ -255,13 +275,30 @@ final class CityService {
                     .value
             }
 
-            // Group by city_id
+            async let vibeTagsFetch: [CityVibeTagJoin] = withTimeout(seconds: 30) {
+                try await self.supabase
+                    .from("city_vibe_tags")
+                    .select("city_id, vibe_tags(name)")
+                    .execute()
+                    .value
+            }
+
+            let (allScores, allVibeTags) = try await (scoresFetch, vibeTagsFetch)
+
+            // Group scores by city_id
             var grouped: [String: [String: Double]] = [:]
             for score in allScores {
                 grouped[score.cityId, default: [:]][score.category] = score.score
             }
             scoreCache = grouped
             cache.save(scoreCache, for: .cityScores)
+
+            // Group vibe tags by city_id
+            var vibeGroups: [String: Set<String>] = [:]
+            for row in allVibeTags {
+                vibeGroups[row.cityId, default: []].insert(row.vibeTags.name)
+            }
+            vibeTagCache = vibeGroups
         } catch {
             print("Failed to fetch all scores: \(error)")
         }
@@ -278,13 +315,28 @@ final class CityService {
             return cached
         }
 
-        // Call edge function
+        // Call edge function — try SDK first, fall back to direct URLSession on 401
         do {
-            let response: CityInsights = try await withTimeout(seconds: 15) {
-                try await self.supabase.functions.invoke(
-                    "city-insights",
-                    options: .init(body: ["city_id": cityId])
-                )
+            let response: CityInsights
+            do {
+                response = try await withTimeout(seconds: 15) {
+                    try await self.supabase.functions.invoke(
+                        "city-insights",
+                        options: .init(body: ["city_id": cityId])
+                    )
+                }
+            } catch let fnError as FunctionsError {
+                // The SDK's fetchWithAuth overwrites our Authorization header with the
+                // (possibly expired) session token. Bypass the SDK entirely on 401.
+                if case .httpError(code: 401, _) = fnError {
+                    print("city-insights 401 — retrying via direct URLSession")
+                    response = try await SupabaseManager.invokeEdgeFunctionDirect(
+                        "city-insights",
+                        body: ["city_id": cityId]
+                    )
+                } else {
+                    throw fnError
+                }
             }
             insightsCache[cityId] = response
             return response
@@ -309,17 +361,26 @@ final class CityService {
         let comparisonTag: String
     }
 
-    /// Finds the most similar cities to `cityId` using Euclidean distance across score categories.
-    /// Returns up to `limit` results, sorted by similarity (smallest distance first).
+    /// Finds the most similar cities using a blend of category score distance and vibe tag overlap.
+    /// - Category distance (40%): Euclidean distance across 8 score categories, normalized 0-1
+    /// - Vibe tag similarity (60%): Jaccard index of shared vibe tag names
+    /// This ensures cities like Virginia Beach ↔ San Diego rank as similar (shared Beach Life,
+    /// Outdoorsy, Family Friendly) despite differing Cost of Living scores.
     func similarCities(to cityId: String, limit: Int = 8) -> [SimilarCity] {
         guard let targetScores = scoreCache[cityId] else { return [] }
+        let targetTags = vibeTagCache[cityId] ?? []
 
-        var results: [(city: City, distance: Double, tag: String)] = []
+        var results: [(city: City, similarity: Double, tag: String)] = []
+
+        // Pre-compute max possible distance for normalization
+        // Max distance = sqrt(8 * 10^2) ≈ 28.3 (all categories differ by 10)
+        let maxDistance = (Double(Self.similarityCategories.count) * 100.0).squareRoot()
 
         for otherCity in allCities where otherCity.id != cityId {
             guard let otherScores = scoreCache[otherCity.id] else { continue }
+            let otherTags = vibeTagCache[otherCity.id] ?? []
 
-            // Compute Euclidean distance across shared categories
+            // Category distance (Euclidean, normalized to 0-1 where 0 = identical)
             var sumSquared = 0.0
             var categoryCount = 0
 
@@ -331,35 +392,73 @@ final class CityService {
                 categoryCount += 1
             }
 
-            guard categoryCount >= 4 else { continue } // Need enough categories for meaningful comparison
+            guard categoryCount >= 4 else { continue }
 
             let distance = (sumSquared / Double(categoryCount)).squareRoot()
+            let normalizedDistance = min(distance / maxDistance, 1.0)
+            let categoryScore = 1.0 - normalizedDistance  // 1 = identical, 0 = maximally different
+
+            // Vibe tag Jaccard similarity: |intersection| / |union|
+            let vibeScore: Double
+            if targetTags.isEmpty && otherTags.isEmpty {
+                vibeScore = 0.5  // No data → neutral
+            } else if targetTags.isEmpty || otherTags.isEmpty {
+                vibeScore = 0.0  // One has tags, other doesn't → low similarity
+            } else {
+                let intersection = targetTags.intersection(otherTags).count
+                let union = targetTags.union(otherTags).count
+                vibeScore = Double(intersection) / Double(union)
+            }
+
+            // Blended similarity: 40% category + 60% vibe tags
+            let similarity = categoryScore * 0.4 + vibeScore * 0.6
+
             let tag = Self.comparisonTag(
-                targetCityId: cityId,
                 targetScores: targetScores,
-                otherCity: otherCity,
-                otherScores: otherScores
+                otherScores: otherScores,
+                targetTags: targetTags,
+                otherTags: otherTags
             )
 
-            results.append((otherCity, distance, tag))
+            results.append((otherCity, similarity, tag))
         }
 
-        // Sort by distance (most similar first)
-        results.sort { $0.distance < $1.distance }
+        // Sort by similarity (highest first)
+        results.sort { $0.similarity > $1.similarity }
 
         return results.prefix(limit).map {
-            SimilarCity(city: $0.city, distance: $0.distance, comparisonTag: $0.tag)
+            SimilarCity(city: $0.city, distance: 1.0 - $0.similarity, comparisonTag: $0.tag)
         }
     }
 
-    /// Generates a human-readable comparison tag like "More affordable" or "Better nightlife".
-    /// Finds the category with the largest positive delta (where the other city beats the target).
+    /// Generates a human-readable comparison tag.
+    /// Prioritizes shared vibe tags (e.g., "Also Beach Life"), then falls back to
+    /// category deltas (e.g., "More affordable").
     private static func comparisonTag(
-        targetCityId: String,
         targetScores: [String: Double],
-        otherCity: City,
-        otherScores: [String: Double]
+        otherScores: [String: Double],
+        targetTags: Set<String>,
+        otherTags: Set<String>
     ) -> String {
+        // First, check for distinctive shared vibe tags
+        let sharedTags = targetTags.intersection(otherTags)
+        if !sharedTags.isEmpty {
+            // Prioritize the most distinctive/interesting shared tags
+            let tagPriority = [
+                "Beach Life", "Outdoorsy", "Foodie", "Nightlife", "Arts & Music",
+                "Startup Hub", "Bohemian", "Coffee Culture", "Digital Nomad",
+                "LGBTQ+ Friendly", "Eco-Conscious", "Historic", "Cosmopolitan",
+                "Family Friendly", "Luxury", "Affordable", "Student Friendly",
+                "Fast-Paced", "Quiet & Peaceful", "Walkable"
+            ]
+            for tag in tagPriority {
+                if sharedTags.contains(tag) {
+                    return "Also \(tag)"
+                }
+            }
+        }
+
+        // Fallback: find the category where the other city beats the target most
         var bestCategory: String?
         var bestDelta = 0.0
 

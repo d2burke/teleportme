@@ -233,12 +233,7 @@ struct CityDetailView: View {
                     SectionHeader(title: "Known For")
                         .padding(.horizontal, TeleportTheme.Spacing.lg)
 
-                    FlowLayout(spacing: TeleportTheme.Spacing.sm) {
-                        ForEach(insights.knownFor, id: \.self) { item in
-                            insightChip(item, icon: "checkmark.circle.fill", color: .green)
-                        }
-                    }
-                    .padding(.horizontal, TeleportTheme.Spacing.lg)
+                    insightChipScroll(insights.knownFor, icon: "checkmark.circle.fill", color: .green)
                 }
             }
 
@@ -248,14 +243,35 @@ struct CityDetailView: View {
                     SectionHeader(title: "Concerns")
                         .padding(.horizontal, TeleportTheme.Spacing.lg)
 
-                    FlowLayout(spacing: TeleportTheme.Spacing.sm) {
-                        ForEach(insights.concerns, id: \.self) { item in
-                            insightChip(item, icon: "exclamationmark.triangle.fill", color: .orange)
-                        }
-                    }
-                    .padding(.horizontal, TeleportTheme.Spacing.lg)
+                    insightChipScroll(insights.concerns, icon: "exclamationmark.triangle.fill", color: .orange)
                 }
             }
+        }
+    }
+
+    /// Horizontal-scrolling two-row chip layout for insight items.
+    private func insightChipScroll(_ items: [String], icon: String, color: Color) -> some View {
+        let midpoint = (items.count + 1) / 2  // Top row gets the extra item if odd
+        let topRow = Array(items.prefix(midpoint))
+        let bottomRow = Array(items.suffix(from: midpoint))
+
+        return ScrollView(.horizontal, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: TeleportTheme.Spacing.sm) {
+                HStack(spacing: TeleportTheme.Spacing.sm) {
+                    ForEach(topRow, id: \.self) { item in
+                        insightChip(item, icon: icon, color: color)
+                    }
+                }
+
+                if !bottomRow.isEmpty {
+                    HStack(spacing: TeleportTheme.Spacing.sm) {
+                        ForEach(bottomRow, id: \.self) { item in
+                            insightChip(item, icon: icon, color: color)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, TeleportTheme.Spacing.lg)
         }
     }
 
